@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BINI Software Testing Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: #ffffff;
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.08);
+      position: relative;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      margin-top: 0;
+      color: #222;
+    }
+
+    .question {
+      margin-bottom: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border-left: 4px solid #007bff;
+    }
+
+    .explanation {
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #fff7e6;
+      border: 1px solid #ffb84d;
+      font-size: 14px;
+      color: #663c00;
+      display: none;
+    }
+
+    button {
+      padding: 12px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #0056b3;
+      transform: scale(1.03);
+    }
+
+    #result {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .certificate {
+      margin-top: 30px;
+      padding: 25px;
+      background: linear-gradient(to bottom, #fff8dc, #ffd700);
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .certificate img {
+      width: 110px;
+      margin-bottom: 15px;
+    }
+
+    .certificate h2 {
+      margin-bottom: 5px;
+    }
+
+    .certificate p {
+      margin: 6px 0;
+    }
+
+    .history {
+      margin-top: 30px;
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .history ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .history li {
+      margin-bottom: 6px;
+    }
+
+    #confettiCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      z-index: 999;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      button {
+        width: 100%;
+      }
+      .certificate {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<div class="container">
+  <h1>BINI Autonomous Group</h1>
+  <h2>Software Testing Quiz</h2>
+  <p style="text-align:center; font-size:14px; color:#555;">
+    Learn as you go: every mistake reveals a detailed explanation so you grow your software testing skills with confidence.
+  </p>
+
+  <div id="quiz"></div>
+  <button onclick="submitQuiz()">Submit Answers</button>
+  <div id="result"></div>
+
+  <div id="certificate"></div>
+
+  <div class="history" id="history"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const questions = [
+  {
+    q: "What is unit testing?",
+    options: [
+      "Testing individual components or functions in isolation",
+      "Testing the entire system end-to-end",
+      "Testing how the system behaves under heavy load",
+      "Testing only the user interface visually"
+    ],
+    answer: 0,
+    explanation:
+      "Unit testing focuses on testing the smallest pieces of code, such as individual functions or methods, in complete isolation. This helps catch bugs early, ensures each unit behaves as expected, and makes refactoring safer because you can quickly verify that core building blocks still work correctly."
+  },
+  {
+    q: "What does SDLC stand for?",
+    options: [
+      "Software Development Life Cycle",
+      "System Data Logic Control",
+      "Software Design Level Code",
+      "System Deployment and Logging Cycle"
+    ],
+    answer: 0,
+    explanation:
+      "SDLC stands for Software Development Life Cycle. It describes the structured process used to plan, design, build, test, deploy, and maintain software. Understanding SDLC helps testers know where testing fits, what to expect at each phase, and how quality is built into the product from the very beginning."
+  },
+  {
+    q: "In JavaScript, arrays are best described as:",
+    options: [
+      "Primitive values like numbers and strings",
+      "Objects that can hold ordered collections of values",
+      "Special types of functions that return lists",
+      "Database tables stored directly in memory"
+    ],
+    answer: 1,
+    explanation:
+      "In JavaScript, arrays are actually objects that store ordered collections of values. They come with many built-in methods for adding, removing, and transforming elements. Knowing that arrays are objects helps you understand how they behave, how they are passed around in code, and why they support powerful operations like map, filter, and reduce."
+  }
+];
+
+function loadQuiz() {
+  const quizDiv = document.getElementById("quiz");
+  quizDiv.innerHTML = "";
+
+  questions.forEach((q, index) => {
+    const qHtml = `
+      <div class="question" id="question-${index}">
+        <p><strong>${index + 1}. ${q.q}</strong></p>
+        ${q.options.map((opt, i) =>
+          `<label><input type="radio" name="q${index}" value="${i}"> ${opt}</label><br>`
+        ).join("")}
+        <div class="explanation" id="explanation-${index}"></div>
+      </div>
+    `;
+    quizDiv.innerHTML += qHtml;
+  });
+}
+
+function submitQuiz() {
+  let score = 0;
+
+  questions.forEach((q, index) => {
+    const selected = document.querySelector(`input[name="q${index}"]:checked`);
+    const expDiv = document.getElementById(`explanation-${index}`);
+    expDiv.style.display = "none";
+    expDiv.innerHTML = "";
+
+    if (selected && parseInt(selected.value) === q.answer) {
+      score++;
+    } else {
+      expDiv.innerHTML = q.explanation;
+      expDiv.style.display = "block";
+    }
+  });
+
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerText = `You scored ${score} out of ${questions.length}.`;
+  if (score === questions.length) {
+    setTimeout(() => {
+      const userName = prompt("🎉 Grade A! Enter your name for your certificate:");
+      if (userName && userName.trim() !== "") {
+        const trimmed = userName.trim();
+        showCertificate(trimmed);
+        saveHistory(trimmed);
+        showHistory();
+        startConfetti();
+      }
+    }, 400);
+  }
+}
+
+function showCertificate(name) {
+  const certDiv = document.getElementById("certificate");
+  const dateStr = new Date().toLocaleDateString();
+  certDiv.innerHTML = `
+    <div class="certificate" id="certificateContent">
+      <img src="JLVaHdMAxG8UzoSappSBQ.jpeg" alt="BINI Logo">
+      <h2>Certificate of Excellence</h2>
+      <p>This certifies that</p>
+      <h2>${name}</h2>
+      <p>has successfully completed the Software Testing Quiz with a Grade A.</p>
+      <p style="font-weight:bold; margin-top:10px;">Bini is proud of you!</p>
+      <p style="margin-top:15px;">Date: ${dateStr}</p>
+      <p style="margin-top:5px; font-size:14px;">Issued by BINI Autonomous Group</p>
+      <button onclick="downloadPDF('${name.replace(/'/g, "\\'")}','${dateStr}')">Download Certificate as PDF</button>
+    </div>
+  `;
+}
+
+function saveHistory(name) {
+  const timestamp = new Date().toLocaleString();
+  const entry = { name, timestamp };
+  let history = JSON.parse(localStorage.getItem("certHistory") || "[]");
+  history.push(entry);
+  localStorage.setItem("certHistory", JSON.stringify(history));
+}
+
+function showHistory() {
+  const historyDiv = document.getElementById("history");
+  let history = JSON.parse(localStorage.getItem("certHistory") || "[]");
+
+  if (history.length === 0) {
+    historyDiv.innerHTML = "";
+    return;
+  }
+
+  historyDiv.innerHTML = `
+    <h3>🏅 Certificate History</h3>
+    <ul>
+      ${history.map(h => `<li>${h.name} — Grade A — ${h.timestamp}</li>`).join("")}
+    </ul>
+  `;
+}
+
+async function downloadPDF(name, dateStr) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "landscape" });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const centerX = pageWidth / 2;
+
+  doc.setFillColor(255, 248, 220);
+  doc.rect(5, 5, pageWidth - 10, 190, "F");
+
+  doc.setDrawColor(218, 165, 32);
+  doc.setLineWidth(2);
+  doc.rect(8, 8, pageWidth - 16, 184);
+
+  try {
+    const img = new Image();
+    img.src = "JLVaHdMAxG8UzoSappSBQ.jpeg";
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+    doc.addImage(img, "JPEG", centerX - 20, 15, 40, 40);
+  } catch (e) {
+    // If logo fails to load, continue without it
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(24);
+  doc.text("Certificate of Excellence", centerX, 70, { align: "center" });
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "normal");
+  doc.text("This certifies that", centerX, 85, { align: "center" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text(name, centerX, 100, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(14);
+  doc.text(
+    "has successfully completed the Software Testing Quiz with a Grade A.",
+    centerX,
+    115,
+    { align: "center" }
+  );
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("Bini is proud of you!", centerX, 130, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  doc.text(`Date: ${dateStr}`, centerX, 145, { align: "center" });
+  doc.text("Issued by BINI Autonomous Group", centerX, 160, { align: "center" });
+
+  doc.save(`BINI_Certificate_${name.replace(/\s+/g, "_")}.pdf`);
+}
+
+// Simple confetti
+let confettiParticles = [];
+let confettiAnimationId = null;
+
+function initConfetti() {
+  const canvas = document.getElementById("confettiCanvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  confettiParticles = [];
+  const colors = ["#ffcc00", "#ff6666", "#66ccff", "#66ff99", "#ff99ff"];
+
+  for (let i = 0; i < 200; i++) {
+    confettiParticles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 6 + 4,
+      d: Math.random() * 0.5 + 0.5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 10
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiParticles.forEach(p => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.ellipse(p.x, p.y, p.r, p.r / 2, p.tilt, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    update();
+    confettiAnimationId = requestAnimationFrame(draw);
+  }
+
+  function update() {
+    confettiParticles.forEach(p => {
+      p.y += p.d * 4;
+      p.x += Math.sin(p.y * 0.01);
+      if (p.y > canvas.height) {
+        p.y = -10;
+        p.x = Math.random() * canvas.width;
+      }
+    });
+  }
+
+  draw();
+  setTimeout(() => {
+    cancelAnimationFrame(confettiAnimationId);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 5000);
+}
+
+function startConfetti() {
+  initConfetti();
+}
+
+window.addEventListener("resize", () => {
+  const canvas = document.getElementById("confettiCanvas");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+loadQuiz();
+showHistory();
+</script>
+
+</body>
+</html>
