@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BINI Software Testing Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* ------------------------------
+   GLOBAL STYLES
+--------------------------------*/
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f4f5f7;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 850px;
+  background: #ffffff;
+  margin: 20px;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.08);
+}
+
+/* ------------------------------
+   HEADERS
+--------------------------------*/
+h1, h2 {
+  text-align: center;
+  margin: 0;
+  color: #222;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 25px;
+}
+
+/* ------------------------------
+   QUESTIONS
+--------------------------------*/
+.question {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border-left: 4px solid #007bff;
+}
+
+.explanation {
+  display: none;
+  background: #fff7e6;
+  border: 1px solid #ffb84d;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #663c00;
+}
+
+/* ------------------------------
+   BUTTONS
+--------------------------------*/
+button {
+  padding: 12px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #0056b3;
+  transform: scale(1.03);
+}
+
+/* ------------------------------
+   RESULT
+--------------------------------*/
+#result {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 15px;
+}
+
+/* ------------------------------
+   CERTIFICATE — MODERN MINIMALIST PORTRAIT
+--------------------------------*/
+.certificate-wrapper {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.certificate {
+  width: 100%;
+  max-width: 600px;
+  padding: 30px;
+  background: white;
+  border-radius: 18px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+
+/* Thin gold border */
+.certificate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  padding: 3px;
+  background: linear-gradient(135deg, #d4af37, #f7e98e, #d4af37);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+
+/* Sparkle animation */
+@keyframes sparkle {
+  0% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-8px); }
+  100% { opacity: 0.3; transform: translateY(0); }
+}
+
+.sparkles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255,215,0,0.4) 2px, transparent 2px);
+  background-size: 40px 40px;
+  animation: sparkle 3s infinite ease-in-out;
+}
+
+/* Certificate text */
+.certificate h2 {
+  margin-top: 10px;
+  font-size: 26px;
+  color: #333;
+}
+
+.certificate p {
+  margin: 8px 0;
+  font-size: 15px;
+  color: #444;
+}
+
+.certificate img {
+  width: 120px;
+  margin-bottom: 10px;
+}
+
+/* ------------------------------
+   BINI IS PROUD OF YOU — FLAIR
+--------------------------------*/
+#biniFlair {
+  display: none;
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+  margin-top: 20px;
+  color: #d4af37;
+  text-shadow: 0 0 12px rgba(255,215,0,0.8);
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+/* ------------------------------
+   CONFETTI CANVAS
+--------------------------------*/
+#confettiCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ------------------------------
+   HISTORY
+--------------------------------*/
+.history {
+  margin-top: 30px;
+  background: #f9fafb;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.history ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history li {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+/* ------------------------------
+   MOBILE
+--------------------------------*/
+@media (max-width: 600px) {
+  .container { padding: 15px; }
+  button { width: 100%; }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<div class="container">
+  <h1>BINI Autonomous Group</h1>
+  <h2>Software Testing Quiz</h2>
+  <p class="subtitle">Learn as you go — every incorrect answer reveals a detailed explanation.</p>
+
+  <div id="quiz"></div>
+  <button onclick="submitQuiz()">Submit Answers</button>
+  <div id="result"></div>
+
+  <div id="biniFlair">✨ Bini is proud of you! ✨</div>
+
+  <div class="certificate-wrapper">
+    <div id="certificate"></div>
+  </div>
+
+  <div class="history" id="history"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+/* ------------------------------
+   10 LLM-REBUILT QUESTIONS
+--------------------------------*/
+const questions = [
+  {
+    q: "Which of the following is NOT a part of the Software Development Life Cycle (SDLC)?",
+    options: ["Requirement", "Coding", "Testing", "None of the above"],
+    answer: 3,
+    explanation:
+      "All three listed activities—requirements gathering, coding, and testing—are essential phases of the Software Development Life Cycle. SDLC ensures software is planned, built, tested, and maintained systematically, so none of the options fall outside the SDLC."
+  },
+  {
+    q: "What test deals with isolation testing of the smallest piece of logic?",
+    options: ["Unit testing", "Integration testing", "Acceptance testing", "Regression testing"],
+    answer: 0,
+    explanation:
+      "Unit testing verifies the smallest individual pieces of code, such as functions or methods, in complete isolation. This helps developers catch defects early, validate logic independently, and ensure each component behaves correctly before integration."
+  },
+  {
+    q: "What test deals with testing the functionality of the software by end users before launch?",
+    options: ["Unit testing", "Integration testing", "Acceptance testing", "Regression testing"],
+    answer: 2,
+    explanation:
+      "Acceptance testing validates that the software meets business requirements and is ready for real-world use. It is often executed by end users or stakeholders to confirm that the system behaves as expected before release."
+  },
+  {
+    q: "What test deals with testing multiple software modules together as a group?",
+    options: ["Unit testing", "Integration testing", "Acceptance testing", "Regression testing"],
+    answer: 1,
+    explanation:
+      "Integration testing verifies that multiple modules or components work correctly when combined. Even if each module works individually, issues can appear when they interact, so this testing ensures proper communication and data flow."
+  },
+  {
+    q: "What test determines the peak load and how many requests the system can receive?",
+    options: ["Load testing", "Stress testing", "Endurance testing", "Pressure testing"],
+    answer: 0,
+    explanation:
+      "Load testing evaluates how a system performs under expected and peak usage conditions. It measures response times, throughput, and stability when many users or requests are active, helping identify performance bottlenecks early."
+  },
+  {
+    q: "Each programming language has only one testing framework dedicated to it.",
+    options: ["True", "False"],
+    answer: 1,
+    explanation:
+      "Most programming languages support multiple testing frameworks, each offering different features and styles. Developers choose frameworks based on project needs, team preferences, and ecosystem support, so it is incorrect to assume only one exists."
+  },
+  {
+    q: "Which of the following is NOT a primitive data type in JavaScript?",
+    options: ["string", "number", "object", "undefined"],
+    answer: 2,
+    explanation:
+      "JavaScript has several primitive data types, including string, number, boolean, null, undefined, bigint, and symbol. Objects are not primitive; they are complex reference types used to store collections of data and advanced structures."
+  },
+  {
+    q: "Which of the following statements is NOT true?",
+    options: [
+      "Objects can contain primitive data types and other objects.",
+      "“1356” is a string.",
+      "Boolean values can only be true or false.",
+      "Strings should be inside double quotes (“”)."
+    ],
+    answer: 3,
+    explanation:
+      "In JavaScript, strings can be written using double quotes, single quotes, or backticks. Double quotes are not required. The other statements are correct: objects can store many data types, '1356' is a string, and booleans are strictly true or false."
+  },
+  {
+    q: "Testing should only be done right before the application is released to the public.",
+    options: ["True", "False"],
+    answer: 1,
+    explanation:
+      "Testing should occur throughout the entire development lifecycle, not just before release. Early and continuous testing helps detect defects sooner, reduces cost, improves quality, and prevents issues from accumulating until the final stages."
+  },
+  {
+    q: "Arrays in JavaScript start with what index?",
+    options: ["0", "1", "A", "a"],
+    answer: 0,
+    explanation:
+      "JavaScript arrays are zero-indexed, meaning the first element is accessed using index 0. This convention is common in many programming languages and is important for loops, iteration, and accessing elements accurately."
+  }
+];
+
+/* ------------------------------
+   LOAD QUIZ
+--------------------------------*/
+function loadQuiz() {
+  const quizDiv = document.getElementById("quiz");
+  quizDiv.innerHTML = "";
+
+  questions.forEach((q, index) => {
+    quizDiv.innerHTML += `
+      <div class="question">
+        <p><strong>${index + 1}. ${q.q}</strong></p>
+        ${q.options
+          .map(
+            (opt, i) =>
+              `<label><input type="radio" name="q${index}" value="${i}"> ${opt}</label><br>`
+          )
+          .join("")}
+        <div class="explanation" id="explanation-${index}"></div>
+      </div>
+    `;
+  });
+}
+
+/* ------------------------------
+   SUBMIT QUIZ
+--------------------------------*/
+function submitQuiz() {
+  let score = 0;
+
+  questions.forEach((q, index) => {
+    const selected = document.querySelector(`input[name="q${index}"]:checked`);
+    const expDiv = document.getElementById(`explanation-${index}`);
+    expDiv.style.display = "none";
+
+    if (selected && parseInt(selected.value) === q.answer) {
+      score++;
+    } else {
+      expDiv.innerHTML = q.explanation;
+      expDiv.style.display = "block";
+    }
+  });
+
+  document.getElementById("result").innerText = `You scored ${score} out of ${questions.length}.`;
+
+  if (score === questions.length) {
+    setTimeout(() => {
+      const name = prompt("🎉 Grade A! Enter your name for your certificate:");
+      if (name && name.trim() !== "") {
+        showCertificate(name.trim());
+        saveHistory(name.trim());
+        showHistory();
+        startConfetti();
+        showFlair();
+      }
+    }, 400);
+  }
+}
+
+/* ------------------------------
+   CERTIFICATE
+--------------------------------*/
+function showCertificate(name) {
+  const dateStr = new Date().toLocaleDateString();
+  const certDiv = document.getElementById("certificate");
+
+  certDiv.innerHTML = `
+    <div class="certificate">
+      <div class="sparkles"></div>
+      <img src="logo.jpeg" alt="BINI Logo">
+      <h2>Certificate of Excellence</h2>
+      <p>This certifies that</p>
+      <h2>${name}</h2>
+      <p>has successfully completed the Software Testing Quiz with a Grade A.</p>
+      <p style="font-weight:bold; margin-top:10px;">BINI Autonomous Group</p>
+      <p style="margin-top:15px;">Date: ${dateStr}</p>
+      <button onclick="downloadPDF('${name.replace(/'/g, "\\'")}','${dateStr}')">Download PDF</button>
+    </div>
+  `;
+}
+
+/* ------------------------------
+   FLAIR
+--------------------------------*/
+function showFlair() {
+  const flair = document.getElementById("biniFlair");
+  flair.style.display = "block";
+}
+
+/* ------------------------------
+   HISTORY
+--------------------------------*/
+function saveHistory(name) {
+  const timestamp = new Date().toLocaleString();
+  const entry = { name, timestamp };
+  let history = JSON.parse(localStorage.getItem("certHistory") || "[]");
+  history.push(entry);
+  localStorage.setItem("certHistory", JSON.stringify(history));
+}
+
+function showHistory() {
+  const historyDiv = document.getElementById("history");
+  let history = JSON.parse(localStorage.getItem("certHistory") || "[]");
+
+  if (history.length === 0) {
+    historyDiv.innerHTML = "";
+    return;
+  }
+
+  historyDiv.innerHTML = `
+    <h3>🏅 Certificate History</h3>
+    <ul>
+      ${history.map(h => `<li>${h.name} — Grade A — ${h.timestamp}</li>`).join("")}
+    </ul>
+  `;
+}
+
+/* ------------------------------
+   PDF DOWNLOAD — PORTRAIT
+--------------------------------*/
+async function downloadPDF(name, dateStr) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "portrait" });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const centerX = pageWidth / 2;
+
+  doc.setFillColor(255, 248, 220);
+  doc.rect(10, 10, pageWidth - 20, 270, "F");
+
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(3);
+  doc.rect(14, 14, pageWidth - 28, 262);
+
+  try {
+    const img = new Image();
+    img.src = "logo.jpeg";
+    await img.decode();
+    doc.addImage(img, "JPEG", centerX - 25, 20, 50, 50);
+  } catch (e) {}
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(22);
+  doc.text("Certificate of Excellence", centerX, 90, { align: "center" });
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "normal");
+  doc.text("This certifies that", centerX, 110, { align: "center" });
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.text(name, centerX, 130, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(14);
+  doc.text(
+    "has successfully completed the Software Testing Quiz with a Grade A.",
+    centerX,
+    150,
+    { align: "center" }
+  );
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text("BINI Autonomous Group", centerX, 170, { align: "center" });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  doc.text(`Date: ${dateStr}`, centerX, 190, { align: "center" });
+
+  doc.save(`BINI_Certificate_${name.replace(/\s+/g, "_")}.pdf`);
+}
+
+/* ------------------------------
+   CONFETTI
+--------------------------------*/
+let confettiParticles = [];
+let confettiAnimationId = null;
+
+function initConfetti() {
+  const canvas = document.getElementById("confettiCanvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  confettiParticles = [];
+  const colors = ["#ffcc00", "#ff6666", "#66ccff", "#66ff99", "#ff99ff"];
+
+  for (let i = 0; i < 200; i++) {
+    confettiParticles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 6 + 4,
