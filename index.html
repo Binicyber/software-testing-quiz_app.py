@@ -1,238 +1,210 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>BINI Software Testing Quiz</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <style>
-/* ------------------------------
-   GLOBAL STYLES
---------------------------------*/
-body {
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #f4f5f7;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-}
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f4f5f7;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+  }
 
-.container {
-  width: 100%;
-  max-width: 850px;
-  background: #ffffff;
-  margin: 20px;
-  padding: 25px;
-  border-radius: 14px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.08);
-}
+  .container {
+    width: 100%;
+    max-width: 850px;
+    background: #ffffff;
+    margin: 20px;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.08);
+  }
 
-/* ------------------------------
-   HEADERS
---------------------------------*/
-h1, h2 {
-  text-align: center;
-  margin: 0;
-  color: #222;
-}
+  h1, h2 {
+    text-align: center;
+    margin: 0;
+    color: #222;
+  }
 
-.subtitle {
-  text-align: center;
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 25px;
-}
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 25px;
+  }
 
-/* ------------------------------
-   QUESTIONS
---------------------------------*/
-.question {
-  background: #f8fafc;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  border-left: 4px solid #007bff;
-}
+  .question {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid #007bff;
+  }
 
-.explanation {
-  display: none;
-  background: #fff7e6;
-  border: 1px solid #ffb84d;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 10px;
-  font-size: 14px;
-  color: #663c00;
-}
+  .question.correct { border-left-color: #16a34a; }
+  .question.wrong   { border-left-color: #dc2626; }
 
-/* ------------------------------
-   BUTTONS
---------------------------------*/
-button {
-  padding: 12px 20px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.2s;
-}
+  .explanation {
+    display: none;
+    background: #fff7e6;
+    border: 1px solid #ffb84d;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #663c00;
+  }
 
-button:hover {
-  background: #0056b3;
-  transform: scale(1.03);
-}
+  .hint {
+    font-size: 13px;
+    color: #555;
+    margin-top: 8px;
+  }
 
-/* ------------------------------
-   RESULT
---------------------------------*/
-#result {
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  margin-top: 15px;
-}
+  button {
+    padding: 12px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
 
-/* ------------------------------
-   CERTIFICATE — MODERN MINIMALIST PORTRAIT
---------------------------------*/
-.certificate-wrapper {
-  margin-top: 30px;
-  display: flex;
-  justify-content: center;
-}
+  button:hover {
+    background: #0056b3;
+    transform: scale(1.03);
+  }
 
-.certificate {
-  width: 100%;
-  max-width: 600px;
-  padding: 30px;
-  background: white;
-  border-radius: 18px;
-  position: relative;
-  text-align: center;
-  box-shadow: 0 0 40px rgba(0,0,0,0.12);
-  overflow: hidden;
-}
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
 
-/* Thin gold border */
-.certificate::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 18px;
-  padding: 3px;
-  background: linear-gradient(135deg, #d4af37, #f7e98e, #d4af37);
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-}
+  #result {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 15px;
+  }
 
-/* Sparkle animation */
-@keyframes sparkle {
-  0% { opacity: 0.3; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-8px); }
-  100% { opacity: 0.3; transform: translateY(0); }
-}
+  .certificate-wrapper {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+  }
 
-.sparkles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background-image: radial-gradient(circle, rgba(255,215,0,0.4) 2px, transparent 2px);
-  background-size: 40px 40px;
-  animation: sparkle 3s infinite ease-in-out;
-}
+  .certificate {
+    width: 100%;
+    max-width: 600px;
+    padding: 30px;
+    background: white;
+    border-radius: 18px;
+    position: relative;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0,0,0,0.12);
+    overflow: hidden;
+  }
 
-/* Certificate text */
-.certificate h2 {
-  margin-top: 10px;
-  font-size: 26px;
-  color: #333;
-}
+  .certificate::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    padding: 3px;
+    background: linear-gradient(135deg, #d4af37, #f7e98e, #d4af37);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+  }
 
-.certificate p {
-  margin: 8px 0;
-  font-size: 15px;
-  color: #444;
-}
+  @keyframes sparkle {
+    0% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(-8px); }
+    100% { opacity: 0.3; transform: translateY(0); }
+  }
 
-.certificate img {
-  width: 120px;
-  margin-bottom: 10px;
-}
+  .sparkles {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255,215,0,0.4) 2px, transparent 2px);
+    background-size: 40px 40px;
+    animation: sparkle 3s infinite ease-in-out;
+  }
 
-/* ------------------------------
-   BINI IS PROUD OF YOU — FLAIR
---------------------------------*/
-#biniFlair {
-  display: none;
-  text-align: center;
-  font-size: 26px;
-  font-weight: bold;
-  margin-top: 20px;
-  color: #d4af37;
-  text-shadow: 0 0 12px rgba(255,215,0,0.8);
-  animation: glow 2s infinite alternate;
-}
+  .certificate h2 {
+    margin-top: 10px;
+    font-size: 26px;
+    color: #333;
+  }
 
-@keyframes glow {
-  from { opacity: 0.6; }
-  to { opacity: 1; }
-}
+  .certificate p {
+    margin: 8px 0;
+    font-size: 15px;
+    color: #444;
+  }
 
-/* ------------------------------
-   CONFETTI CANVAS
---------------------------------*/
-#confettiCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 999;
-}
+  .logo {
+    width: 120px;
+    margin-bottom: 10px;
+  }
 
-/* ------------------------------
-   HISTORY
---------------------------------*/
-.history {
-  margin-top: 30px;
-  background: #f9fafb;
-  padding: 15px;
-  border-radius: 10px;
-}
+  #biniFlair {
+    display: none;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    margin-top: 20px;
+    color: #d4af37;
+    text-shadow: 0 0 12px rgba(255,215,0,0.8);
+    animation: glow 2s infinite alternate;
+  }
 
-.history ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+  @keyframes glow {
+    from { opacity: 0.6; }
+    to   { opacity: 1; }
+  }
 
-.history li {
-  margin-bottom: 6px;
-  font-size: 14px;
-}
+  #confettiCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+  }
 
-/* ------------------------------
-   MOBILE
---------------------------------*/
-@media (max-width: 600px) {
-  .container { padding: 15px; }
-  button { width: 100%; }
-}
+  .history {
+    margin-top: 30px;
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .history ul { list-style: none; padding: 0; margin: 0; }
+  .history li { margin-bottom: 6px; font-size: 14px; }
+
+  @media (max-width: 600px) {
+    .container { padding: 15px; }
+    button { width: 100%; }
+  }
 </style>
 </head>
 
 <body>
-
 <canvas id="confettiCanvas"></canvas>
 
 <div class="container">
@@ -241,9 +213,14 @@ button:hover {
   <p class="subtitle">Learn as you go — every incorrect answer reveals a detailed explanation.</p>
 
   <div id="quiz"></div>
-  <button onclick="submitQuiz()">Submit Answers</button>
-  <div id="result"></div>
 
+  <div class="btn-row">
+    <button type="button" onclick="submitQuiz()">Submit Answers</button>
+    <button type="button" onclick="resetQuiz()">Reset</button>
+    <button type="button" onclick="clearHistory()">Clear History</button>
+  </div>
+
+  <div id="result"></div>
   <div id="biniFlair">✨ Bini is proud of you! ✨</div>
 
   <div class="certificate-wrapper">
@@ -256,58 +233,78 @@ button:hover {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-/* ------------------------------
-   10 LLM-REBUILT QUESTIONS
---------------------------------*/
+/** Inline “logo” as SVG so it always loads (and can be embedded into PDF reliably). */
+const LOGO_SVG_DATA_URL =
+  "data:image/svg+xml;charset=utf-8," +
+  encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#0b4aa2"/>
+        <stop offset="1" stop-color="#0ea5e9"/>
+      </linearGradient>
+      <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#d4af37"/>
+        <stop offset="0.5" stop-color="#f7e98e"/>
+        <stop offset="1" stop-color="#d4af37"/>
+      </linearGradient>
+    </defs>
+    <rect x="18" y="18" width="204" height="204" rx="28" fill="url(#g)"/>
+    <rect x="28" y="28" width="184" height="184" rx="24" fill="none" stroke="url(#gold)" stroke-width="8"/>
+    <text x="120" y="140" text-anchor="middle" font-family="Segoe UI, Arial" font-size="76" font-weight="800" fill="white">BINI</text>
+    <text x="120" y="175" text-anchor="middle" font-family="Segoe UI, Arial" font-size="20" font-weight="600" fill="rgba(255,255,255,0.9)">Autonomous Group</text>
+  </svg>
+`);
+
 const questions = [
   {
     q: "Which of the following is NOT a part of the Software Development Life Cycle (SDLC)?",
     options: ["Requirement", "Coding", "Testing", "None of the above"],
     answer: 3,
     explanation:
-      "All three listed activities—requirements gathering, coding, and testing—are essential phases of the Software Development Life Cycle. SDLC ensures software is planned, built, tested, and maintained systematically, so none of the options fall outside the SDLC."
+      "All three listed activities—requirements gathering, coding, and testing—are essential phases of SDLC. SDLC ensures software is planned, built, tested, and maintained systematically, so none of the options fall outside the SDLC."
   },
   {
     q: "What test deals with isolation testing of the smallest piece of logic?",
     options: ["Unit testing", "Integration testing", "Acceptance testing", "Regression testing"],
     answer: 0,
     explanation:
-      "Unit testing verifies the smallest individual pieces of code, such as functions or methods, in complete isolation. This helps developers catch defects early, validate logic independently, and ensure each component behaves correctly before integration."
+      "Unit testing verifies the smallest individual pieces of code, such as functions or methods, in isolation. This helps catch defects early and validates logic before integration."
   },
   {
     q: "What test deals with testing the functionality of the software by end users before launch?",
     options: ["Unit testing", "Integration testing", "Acceptance testing", "Regression testing"],
     answer: 2,
     explanation:
-      "Acceptance testing validates that the software meets business requirements and is ready for real-world use. It is often executed by end users or stakeholders to confirm that the system behaves as expected before release."
+      "Acceptance testing validates that the software meets business requirements and is ready for real-world use. It’s often performed by end users or stakeholders before release."
   },
   {
     q: "What test deals with testing multiple software modules together as a group?",
     options: ["Unit testing", "Integration testing", "Acceptance testing", "Regression testing"],
     answer: 1,
     explanation:
-      "Integration testing verifies that multiple modules or components work correctly when combined. Even if each module works individually, issues can appear when they interact, so this testing ensures proper communication and data flow."
+      "Integration testing verifies that modules/components work correctly when combined. Issues often appear at the interfaces even if each module passes unit tests."
   },
   {
     q: "What test determines the peak load and how many requests the system can receive?",
     options: ["Load testing", "Stress testing", "Endurance testing", "Pressure testing"],
     answer: 0,
     explanation:
-      "Load testing evaluates how a system performs under expected and peak usage conditions. It measures response times, throughput, and stability when many users or requests are active, helping identify performance bottlenecks early."
+      "Load testing measures performance under expected and peak usage (response time, throughput, stability). Stress testing pushes beyond limits to see failure behavior."
   },
   {
     q: "Each programming language has only one testing framework dedicated to it.",
     options: ["True", "False"],
     answer: 1,
     explanation:
-      "Most programming languages support multiple testing frameworks, each offering different features and styles. Developers choose frameworks based on project needs, team preferences, and ecosystem support, so it is incorrect to assume only one exists."
+      "Most languages have multiple testing frameworks (e.g., JavaScript has Jest, Mocha, Jasmine, Vitest). Framework choice depends on ecosystem and team needs."
   },
   {
     q: "Which of the following is NOT a primitive data type in JavaScript?",
     options: ["string", "number", "object", "undefined"],
     answer: 2,
     explanation:
-      "JavaScript has several primitive data types, including string, number, boolean, null, undefined, bigint, and symbol. Objects are not primitive; they are complex reference types used to store collections of data and advanced structures."
+      "JavaScript primitives include string, number, boolean, null, undefined, bigint, and symbol. Objects are reference types (non-primitive)."
   },
   {
     q: "Which of the following statements is NOT true?",
@@ -319,143 +316,167 @@ const questions = [
     ],
     answer: 3,
     explanation:
-      "In JavaScript, strings can be written using double quotes, single quotes, or backticks. Double quotes are not required. The other statements are correct: objects can store many data types, '1356' is a string, and booleans are strictly true or false."
+      "Strings in JavaScript can use double quotes, single quotes, or backticks—double quotes are not required."
   },
   {
     q: "Testing should only be done right before the application is released to the public.",
     options: ["True", "False"],
     answer: 1,
     explanation:
-      "Testing should occur throughout the entire development lifecycle, not just before release. Early and continuous testing helps detect defects sooner, reduces cost, improves quality, and prevents issues from accumulating until the final stages."
+      "Testing should happen throughout development (shift-left + continuous testing). Early testing reduces cost and improves quality."
   },
   {
     q: "Arrays in JavaScript start with what index?",
     options: ["0", "1", "A", "a"],
     answer: 0,
     explanation:
-      "JavaScript arrays are zero-indexed, meaning the first element is accessed using index 0. This convention is common in many programming languages and is important for loops, iteration, and accessing elements accurately."
+      "JavaScript arrays are zero-indexed: first element is index 0."
   }
 ];
 
-/* ------------------------------
-   LOAD QUIZ
---------------------------------*/
 function loadQuiz() {
   const quizDiv = document.getElementById("quiz");
   quizDiv.innerHTML = "";
 
   questions.forEach((q, index) => {
     quizDiv.innerHTML += `
-      <div class="question">
+      <div class="question" id="qbox-${index}">
         <p><strong>${index + 1}. ${q.q}</strong></p>
-        ${q.options
-          .map(
-            (opt, i) =>
-              `<label><input type="radio" name="q${index}" value="${i}"> ${opt}</label><br>`
-          )
-          .join("")}
+        ${q.options.map((opt, i) => `
+          <label>
+            <input type="radio" name="q${index}" value="${i}">
+            ${opt}
+          </label><br>
+        `).join("")}
         <div class="explanation" id="explanation-${index}"></div>
       </div>
     `;
   });
 }
 
-/* ------------------------------
-   SUBMIT QUIZ
---------------------------------*/
 function submitQuiz() {
   let score = 0;
 
   questions.forEach((q, index) => {
     const selected = document.querySelector(`input[name="q${index}"]:checked`);
     const expDiv = document.getElementById(`explanation-${index}`);
-    expDiv.style.display = "none";
+    const qbox = document.getElementById(`qbox-${index}`);
 
-    if (selected && parseInt(selected.value) === q.answer) {
+    expDiv.style.display = "none";
+    qbox.classList.remove("correct","wrong");
+
+    const correct = selected && parseInt(selected.value, 10) === q.answer;
+
+    if (correct) {
       score++;
+      qbox.classList.add("correct");
     } else {
-      expDiv.innerHTML = q.explanation;
+      qbox.classList.add("wrong");
+      expDiv.innerHTML = q.explanation + `<div class="hint">Correct answer: <b>${q.options[q.answer]}</b></div>`;
       expDiv.style.display = "block";
     }
   });
 
-  document.getElementById("result").innerText = `You scored ${score} out of ${questions.length}.`;
+  document.getElementById("result").innerText =
+    `You scored ${score} out of ${questions.length}.`;
+
+  const dateStr = new Date().toLocaleDateString();
+  saveHistory({ score, total: questions.length, dateStr });
 
   if (score === questions.length) {
     setTimeout(() => {
       const name = prompt("🎉 Grade A! Enter your name for your certificate:");
-      if (name && name.trim() !== "") {
-        showCertificate(name.trim());
-        saveHistory(name.trim());
-        showHistory();
-        startConfetti();
+      if (name && name.trim()) {
+        showCertificate(name.trim(), dateStr);
+        startConfetti(5000); // 5 seconds
         showFlair();
       }
-    }, 400);
+      showHistory();
+    }, 250);
+  } else {
+    // still refresh history display
+    showHistory();
   }
 }
 
-/* ------------------------------
-   CERTIFICATE
---------------------------------*/
-function showCertificate(name) {
-  const dateStr = new Date().toLocaleDateString();
+function resetQuiz() {
+  document.getElementById("certificate").innerHTML = "";
+  document.getElementById("result").innerText = "";
+  document.getElementById("biniFlair").style.display = "none";
+
+  questions.forEach((_, index) => {
+    const expDiv = document.getElementById(`explanation-${index}`);
+    const qbox = document.getElementById(`qbox-${index}`);
+    expDiv.style.display = "none";
+    qbox.classList.remove("correct","wrong");
+  });
+
+  // uncheck radios
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+
+  stopConfetti();
+}
+
+function showCertificate(name, dateStr) {
   const certDiv = document.getElementById("certificate");
 
   certDiv.innerHTML = `
-    <div class="certificate">
+    <div class="certificate" id="certCard">
       <div class="sparkles"></div>
-      <img src="logo.jpeg" alt="BINI Logo">
+      <img class="logo" src="${LOGO_SVG_DATA_URL}" alt="BINI Logo">
       <h2>Certificate of Excellence</h2>
       <p>This certifies that</p>
-      <h2>${name}</h2>
+      <h2>${escapeHtml(name)}</h2>
       <p>has successfully completed the Software Testing Quiz with a Grade A.</p>
       <p style="font-weight:bold; margin-top:10px;">BINI Autonomous Group</p>
-      <p style="margin-top:15px;">Date: ${dateStr}</p>
-      <button onclick="downloadPDF('${name.replace(/'/g, "\\'")}','${dateStr}')">Download PDF</button>
+      <p style="margin-top:15px;">Date: ${escapeHtml(dateStr)}</p>
+      <div class="btn-row">
+        <button type="button" onclick="downloadPDF('${jsStringEscape(name)}','${jsStringEscape(dateStr)}')">Download PDF</button>
+      </div>
     </div>
   `;
 }
 
-/* ------------------------------
-   FLAIR
---------------------------------*/
 function showFlair() {
   const flair = document.getElementById("biniFlair");
   flair.style.display = "block";
 }
 
-/* ------------------------------
-   HISTORY
---------------------------------*/
-function saveHistory(name) {
+function saveHistory(entry) {
   const timestamp = new Date().toLocaleString();
-  const entry = { name, timestamp };
-  let history = JSON.parse(localStorage.getItem("certHistory") || "[]");
-  history.push(entry);
+  const rec = { ...entry, timestamp };
+  const history = JSON.parse(localStorage.getItem("certHistory") || "[]");
+  history.push(rec);
   localStorage.setItem("certHistory", JSON.stringify(history));
+}
+
+function clearHistory() {
+  localStorage.removeItem("certHistory");
+  showHistory();
 }
 
 function showHistory() {
   const historyDiv = document.getElementById("history");
-  let history = JSON.parse(localStorage.getItem("certHistory") || "[]");
+  const history = JSON.parse(localStorage.getItem("certHistory") || "[]");
 
-  if (history.length === 0) {
+  if (!history.length) {
     historyDiv.innerHTML = "";
     return;
   }
 
   historyDiv.innerHTML = `
-    <h3>🏅 Certificate History</h3>
+    <h3>🏅 Attempts History</h3>
     <ul>
-      ${history.map(h => `<li>${h.name} — Grade A — ${h.timestamp}</li>`).join("")}
+      ${history.slice(-20).reverse().map(h => `
+        <li><b>${h.score}/${h.total}</b> — ${escapeHtml(h.dateStr)} — ${escapeHtml(h.timestamp)}</li>
+      `).join("")}
     </ul>
   `;
 }
 
-/* ------------------------------
-   PDF DOWNLOAD — PORTRAIT
---------------------------------*/
+/** PDF: embed the same inline SVG logo as PNG-ish image is tricky; jsPDF supports SVG via plugins,
+ * but simplest: draw a “logo box” + text. (Always reliable offline.)
+ */
 async function downloadPDF(name, dateStr) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: "portrait" });
@@ -463,19 +484,25 @@ async function downloadPDF(name, dateStr) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const centerX = pageWidth / 2;
 
+  // Background
   doc.setFillColor(255, 248, 220);
   doc.rect(10, 10, pageWidth - 20, 270, "F");
 
+  // Border
   doc.setDrawColor(212, 175, 55);
   doc.setLineWidth(3);
   doc.rect(14, 14, pageWidth - 28, 262);
 
-  try {
-    const img = new Image();
-    img.src = "logo.jpeg";
-    await img.decode();
-    doc.addImage(img, "JPEG", centerX - 25, 20, 50, 50);
-  } catch (e) {}
+  // Simple “logo box” (no external file needed)
+  doc.setDrawColor(14, 165, 233);
+  doc.setFillColor(11, 74, 162);
+  doc.roundedRect(centerX - 25, 22, 50, 50, 6, 6, "FD");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("BINI", centerX, 52, { align: "center" });
+
+  doc.setTextColor(0, 0, 0);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
@@ -509,23 +536,98 @@ async function downloadPDF(name, dateStr) {
   doc.save(`BINI_Certificate_${name.replace(/\s+/g, "_")}.pdf`);
 }
 
-/* ------------------------------
-   CONFETTI
---------------------------------*/
+/* ---------------- Confetti ---------------- */
 let confettiParticles = [];
 let confettiAnimationId = null;
+let confettiStopTimer = null;
 
 function initConfetti() {
   const canvas = document.getElementById("confettiCanvas");
   const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+
+  resizeCanvas();
 
   confettiParticles = [];
   const colors = ["#ffcc00", "#ff6666", "#66ccff", "#66ff99", "#ff99ff"];
 
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 220; i++) {
     confettiParticles.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height - canvas.height,
-      r: Math.random() * 6 + 4,
+      r: Math.random() * 5 + 3,
+      d: Math.random() * 2 + 0.8,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiParticles.forEach(p => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    update();
+    confettiAnimationId = requestAnimationFrame(draw);
+  }
+
+  function update() {
+    confettiParticles.forEach(p => {
+      p.y += p.d;
+      p.x += Math.sin(p.y * 0.02);
+      if (p.y > canvas.height + 10) {
+        p.y = -10;
+        p.x = Math.random() * canvas.width;
+      }
+    });
+  }
+
+  draw();
+}
+
+function startConfetti(ms = 4000) {
+  if (!confettiAnimationId) initConfetti();
+
+  if (confettiStopTimer) clearTimeout(confettiStopTimer);
+  confettiStopTimer = setTimeout(() => stopConfetti(), ms);
+}
+
+function stopConfetti() {
+  if (confettiAnimationId) {
+    cancelAnimationFrame(confettiAnimationId);
+    confettiAnimationId = null;
+  }
+  const canvas = document.getElementById("confettiCanvas");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function resizeCanvas() {
+  const canvas = document.getElementById("confettiCanvas");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+window.addEventListener("resize", () => {
+  resizeCanvas();
+});
+
+/* ---------------- Helpers ---------------- */
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[s]));
+}
+
+function jsStringEscape(str) {
+  return String(str).replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+}
+
+window.onload = () => {
+  loadQuiz();
+  showHistory();
+};
+</script>
+</body>
+</html>
