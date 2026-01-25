@@ -1,229 +1,979 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>GB300 L10 / L11 Diagnostic Framework</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GB300 TSG Tunnel</title>
 
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- OSINT-style graph -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <!-- Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-<style>
-:root{
-  --bg:#eef1f6;
-  --panel:#f8fafc;
-  --ink:#0f172a;
-  --muted:#64748b;
-  --line:#dbe1ea;
-  --brand:#1e40af;
-  --shadow:0 8px 24px rgba(0,0,0,.08);
-}
+  <style>
+    :root{
+      /* Softer light theme (not too white) */
+      --bg:#eef1f6;
+      --panel:#f8fafc;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:#dbe1ea;
+      --brand:#1e40af;
+      --brand2:#3b82f6;
+      --shadow: 0 8px 24px rgba(0,0,0,0.06);
+      --pill:#edf2ff;
+    }
+    body.dark{
+      --bg:#0b1220;
+      --panel:#0f1a2d;
+      --ink:#e5e7eb;
+      --muted:#9ca3af;
+      --line:#1f2a44;
+      --brand:#7aa2ff;
+      --brand2:#93c5fd;
+      --shadow: 0 10px 34px rgba(0,0,0,0.35);
+      --pill:#111c33;
+    }
 
-body{
-  margin:0;
-  font-family:Segoe UI,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--ink);
-}
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    }
 
-.container{max-width:1200px;margin:auto;padding:16px;}
+    .wrap{max-width:1200px;margin:18px auto;padding:0 14px 24px;}
+    .top{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .brandrow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .title{margin:0;font-size:18px;letter-spacing:.2px;color:var(--brand);font-weight:1000}
+    .subtitle{margin:4px 0 0;color:var(--muted);font-size:13px}
 
-h1{margin:0;color:var(--brand)}
-.sub{color:var(--muted);font-size:13px}
+    .btn{
+      appearance:none;border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      color:var(--ink);padding:10px 12px;border-radius:12px;
+      cursor:pointer;font-weight:900;letter-spacing:.15px;
+      transition:transform .12s ease, opacity .12s ease;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);opacity:.96;}
+    .btn.primary{
+      border-color: rgba(59,130,246,.35);
+      background: linear-gradient(180deg, rgba(59,130,246,.20), rgba(59,130,246,.07));
+    }
 
-.panel{
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:12px;
-  margin-top:12px;
-  box-shadow:var(--shadow);
-}
+    .tabs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+    .tab{
+      appearance:none;border:1px solid var(--line);background:transparent;color:var(--ink);
+      padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:1000;
+    }
+    .tab small{font-weight:800;color:var(--muted);margin-left:6px}
+    .tab.active{
+      border-color: rgba(59,130,246,.35);
+      background: linear-gradient(180deg, rgba(59,130,246,.18), rgba(59,130,246,.06));
+      color: var(--brand);
+    }
 
-.btn{
-  padding:10px 14px;
-  border-radius:10px;
-  border:1px solid var(--line);
-  background:#fff;
-  cursor:pointer;
-  font-weight:700;
-}
-.btn.primary{background:#1e40af;color:#fff}
+    .searchrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+    input[type="search"], input[type="text"]{
+      width:360px;max-width:100%;
+      padding:12px;border-radius:12px;border:1px solid var(--line);
+      background:var(--panel);color:var(--ink);outline:none;font-weight:800;
+    }
 
-.grid{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:12px}
-@media(max-width:1100px){.grid{grid-template-columns:1fr}}
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+      background:var(--pill);color:var(--ink);
+      font-size:12px;font-weight:900;
+    }
 
-input,select{
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid var(--line);
-  background:#fff;
-  font-weight:600;
-}
+    /* MORE SPACE TO OSINT DIAGRAM */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.6fr .7fr .7fr; /* bigger left panel */
+      gap:12px;margin-top:12px;align-items:start;
+    }
+    @media (max-width:1200px){
+      .grid{grid-template-columns:1fr;}
+      input[type="search"], input[type="text"]{width:100%;}
+    }
 
-#viz{height:650px;border:1px solid var(--line);border-radius:12px}
+    .pane{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      padding:12px;
+      overflow:hidden;
+    }
 
-/* ===== TV PANEL ===== */
-.tvFooter{
-  position:sticky;
-  bottom:10px;
-  margin-top:16px;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:12px;
-  box-shadow:var(--shadow);
-}
-.tvTop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.tvControls{display:flex;gap:10px}
-.tvMarquee{height:52px;overflow:hidden;border:1px solid var(--line);border-radius:10px;margin-top:10px}
-.tvTrack{
-  display:flex;
-  gap:48px;
-  white-space:nowrap;
-  animation:scroll 30s linear infinite;
-}
-.tvText{font-size:18px;font-weight:900;transform:translateZ(30px) rotateY(-10deg)}
-@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-</style>
+    #viz{
+      width:100%;
+      height:820px;  /* bigger OSINT area */
+      display:block;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,0));
+    }
+    @media (max-width:1200px){ #viz{height:600px;} }
+
+    .sub{margin:0;color:var(--muted);font-size:13px;line-height:1.35}
+    .sectionTitle{margin:0 0 10px;font-size:14px;font-weight:1000;color:var(--brand);letter-spacing:.2px}
+    .empty{
+      color:var(--muted);font-weight:800;padding:10px;
+      border:1px dashed var(--line);border-radius:12px;background:rgba(0,0,0,.02);
+    }
+
+    /* Keep side panels from stealing vertical space */
+    #details, #logsPane{max-height:820px;overflow:auto;}
+    @media (max-width:1200px){ #details, #logsPane{max-height:none;} }
+
+    /* D3 */
+    .link-path{fill:none;stroke: rgba(107,114,128,.45);stroke-width:1.4;}
+    body.dark .link-path{stroke: rgba(156,163,175,.35);}
+    .node-circle{fill:var(--panel);stroke:var(--brand2);stroke-width:2;}
+    .node-circle.leaf{stroke: rgba(34,197,94,.85);}
+    .node-circle.selected{stroke: rgba(245,158,11,.95);stroke-width:3;}
+    .node-label{font-size:12px;font-weight:900;fill:var(--ink);}
+    .muted{opacity:.22;}
+
+    /* Steps */
+    .step{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      margin-top:8px;
+      background: rgba(0,0,0,.01);
+    }
+    .checkRow{display:flex;gap:10px;align-items:flex-start;cursor:pointer;}
+    .checkRow input{margin-top:4px;transform:scale(1.12);}
+    .metaRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+
+    /* ===== GOLD TICKER BANNER (end-to-end) ===== */
+    .tickerBar{
+      position: sticky;
+      bottom: 0;
+      margin-top: 12px;
+      padding: 10px;
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      z-index: 40;
+    }
+    .tickerInner{
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,0));
+    }
+    .tickerTrack{
+      display:flex;
+      gap: 60px;
+      white-space: nowrap;
+      will-change: transform;
+      animation: tickerScroll 45s linear infinite;
+      padding: 10px 14px;
+    }
+    .tickerText{
+      font-weight: 1000;
+      font-size: 18px;
+      letter-spacing: .35px;
+      color: #d4af37; /* gold */
+      text-shadow:
+        0 1px 0 rgba(0,0,0,.25),
+        0 0 10px rgba(212,175,55,.25);
+    }
+    @keyframes tickerScroll{
+      from { transform: translateX(100%); }
+      to   { transform: translateX(-100%); }
+    }
+    .tickerControls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top: 10px;
+    }
+    .tickerControls input[type="text"]{
+      flex: 1 1 360px;
+      min-width: 240px;
+    }
+    .tickerControls input[type="range"]{ width: 180px; }
+
+    /* Simple modal */
+    .modalOverlay{
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center; padding: 18px; z-index: 50;
+    }
+    .modal{
+      width: min(720px, 96vw);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .modal h3{margin:0;color:var(--brand);font-weight:1000;letter-spacing:.2px;}
+    .modalGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+    @media (max-width:720px){.modalGrid{grid-template-columns:1fr;}}
+    .catBtn{
+      text-align:left;padding:12px;border-radius:12px;border:1px solid var(--line);
+      background: rgba(0,0,0,.02); cursor:pointer; font-weight: 1000; color: var(--ink);
+    }
+    .catBtn:hover{
+      border-color: rgba(59,130,246,.35);
+      background: linear-gradient(180deg, rgba(59,130,246,.16), rgba(59,130,246,.05));
+    }
+  </style>
 </head>
 
 <body>
-<div class="container">
+  <div class="wrap">
 
-<h1>GB300 Diagnostic Framework</h1>
-<div class="sub">L10 / L11 — Step Driven Diagnostics</div>
+    <div class="top">
+      <div class="brandrow">
+        <div>
+          <h1 class="title">GB300 TSG Tunnel</h1>
+          <p class="subtitle">OSINT-style navigation for L10 (single server) and L11 (rack/cluster). Steps + logs + Excel export.</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="themeBtn" type="button">Toggle dark mode</button>
+          <button class="btn primary" id="rootPickerBtn" type="button">Pick category</button>
+        </div>
+      </div>
 
-<div class="panel">
-  <button class="btn primary" onclick="loadDept('L10')">L10</button>
-  <button class="btn primary" onclick="loadDept('L11')">L11</button>
-</div>
+      <div class="tabs">
+        <button class="tab active" id="tabL10" type="button">L10 <small>(Single Server)</small></button>
+        <button class="tab" id="tabL11" type="button">L11 <small>(Rack / Cluster)</small></button>
+        <span class="pill" id="scopePill">Scope: L10</span>
+        <span class="pill" id="badgeCounts">Counts: —</span>
+      </div>
 
-<div class="grid">
-
-  <div class="panel">
-    <svg id="viz"></svg>
-  </div>
-
-  <div class="panel" id="details">
-    <b>Select a failure</b>
-  </div>
-
-  <div class="panel">
-    <b>Logs</b><br><br>
-    Rack Location
-    <input id="rack"><br><br>
-    Server SN
-    <input id="server"><br><br>
-    Result
-    <select id="result">
-      <option>PASS</option>
-      <option>FAIL</option>
-      <option>FIXED</option>
-      <option>ESCALATE</option>
-    </select><br><br>
-    <button class="btn primary" onclick="saveLog()">Add Log</button>
-    <button class="btn" onclick="exportExcel()">Export Excel</button>
-  </div>
-
-</div>
-
-<!-- TV -->
-<div class="tvFooter">
-  <div class="tvTop">
-    <div>
-      <b>Daily Mood TV</b>
-      <div class="sub">Operations ticker</div>
+      <div class="searchrow">
+        <input id="q" type="search" placeholder="Search: fail id, fail name, symptom, tag..." />
+      </div>
     </div>
-    <div class="tvControls">
-      <input id="tvText" placeholder="Type message">
-      <button class="btn primary" onclick="setTV()">Continue</button>
+
+    <div class="grid">
+      <div class="pane">
+        <svg id="viz"></svg>
+        <p class="sub" style="margin-top:10px;">
+          Tip: click a category circle to expand/collapse. Clicking a category collapses siblings (clean OSINT flow).
+        </p>
+      </div>
+
+      <div class="pane" id="details">
+        <div class="empty">Select a fail node to view steps. (Enter Rack Location + Server SN on the right, then Start Session.)</div>
+      </div>
+
+      <div class="pane" id="logsPane">
+        <h2 class="sectionTitle">Logs — Local PC (safe)</h2>
+        <p class="sub">Excel export creates ONE file with TWO sheets: <b>L10_LOGS</b> and <b>L11_LOGS</b>.</p>
+
+        <div style="display:grid; grid-template-columns:1fr; gap:10px; margin-top:10px;">
+          <div>
+            <p class="sub" style="margin:0 0 6px;"><b>Rack Location (REQUIRED)</b></p>
+            <input id="logRack" type="text" placeholder="Rack Location (ex: ROW3-BAY4 / RACK-A12)" />
+          </div>
+          <div>
+            <p class="sub" style="margin:0 0 6px; font-weight:1000; color:var(--brand2);">Server Serial Number (REQUIRED)</p>
+            <input id="logServer" type="text" placeholder="Scan or type Server SN (ex: SN-GB300-00123)" />
+            <p class="sub" style="margin-top:6px;">Each Server SN keeps its own repair session + step history.</p>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <p class="sub" style="margin:0 0 6px;">Department</p>
+              <select id="logDept" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--ink); font-weight:900;">
+                <option value="L10">L10</option>
+                <option value="L11">L11</option>
+              </select>
+            </div>
+            <div>
+              <p class="sub" style="margin:0 0 6px;">Result</p>
+              <select id="logResult" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--ink); font-weight:900;">
+                <option value="PENDING">PENDING</option>
+                <option value="PASS">PASS</option>
+                <option value="FAIL">FAIL</option>
+                <option value="FIXED">FIXED</option>
+                <option value="ESCALATE">ESCALATE</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <p class="sub" style="margin:0 0 6px;">Fail ID (auto)</p>
+            <input id="logFailId" type="text" placeholder="Auto-filled when you click a fail" />
+          </div>
+          <div>
+            <p class="sub" style="margin:0 0 6px;">Fail Name (auto)</p>
+            <input id="logFailName" type="text" placeholder="Auto-filled when you click a fail" />
+          </div>
+
+          <div>
+            <p class="sub" style="margin:0 0 6px;">Notes</p>
+            <input id="logNotes" type="text" placeholder="Short note (reseat / replace / retest / escalate...)" />
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
+            <button class="btn primary" id="addLogBtn" type="button">Add log row</button>
+            <button class="btn primary" id="exportXlsxBtn" type="button">Export Excel</button>
+            <button class="btn" id="clearLogsBtn" type="button">Clear local logs</button>
+          </div>
+
+          <div style="margin-top:10px; max-height:240px; overflow:auto; border:1px solid var(--line); border-radius:12px;">
+            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+              <thead>
+                <tr style="position:sticky; top:0; background:var(--panel); border-bottom:1px solid var(--line);">
+                  <th style="text-align:left; padding:8px;">Time</th>
+                  <th style="text-align:left; padding:8px;">Dept</th>
+                  <th style="text-align:left; padding:8px;">Rack Location</th>
+                  <th style="text-align:left; padding:8px;">Server SN</th>
+                  <th style="text-align:left; padding:8px;">Fail</th>
+                  <th style="text-align:left; padding:8px;">Result</th>
+                </tr>
+              </thead>
+              <tbody id="logPreview"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOLD BOTTOM TICKER -->
+    <div class="tickerBar" id="tickerBar">
+      <div class="tickerInner">
+        <div class="tickerTrack" id="tickerTrack">
+          <span class="tickerText" id="tickerTextA">⚡ GB300 TSG Tunnel — Follow the steps. No repeats. ⚡</span>
+          <span class="tickerText" id="tickerTextB">⚡ GB300 TSG Tunnel — Follow the steps. No repeats. ⚡</span>
+        </div>
+      </div>
+
+      <div class="tickerControls">
+        <input id="tickerInput" type="text" placeholder="Type your daily quote / mood and press Enter…" maxlength="220" />
+        <button class="btn primary" id="tickerGoBtn" type="button">Set</button>
+        <button class="btn" id="tickerPauseBtn" type="button">Pause</button>
+
+        <span class="sub" style="margin-left:10px;">Speed</span>
+        <input id="tickerSpeed" type="range" min="18" max="90" value="45" />
+        <span class="sub" id="tickerSpeedLabel">45s</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Category Picker Modal -->
+  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <h3 id="modalTitle">Pick a category</h3>
+        <button class="btn" id="closeModalBtn" type="button">Close</button>
+      </div>
+      <p class="sub" style="margin-top:6px;">Select a top category to expand it (others collapse).</p>
+      <div class="modalGrid" id="modalGrid"></div>
     </div>
   </div>
-  <div class="tvMarquee">
-    <div class="tvTrack" id="tvTrack">
-      <span class="tvText" id="tvA">System Ready</span>
-      <span class="tvText" id="tvB">System Ready</span>
-    </div>
-  </div>
-</div>
 
-</div>
+  <script>
+  (() => {
+    // ---------------- Theme ----------------
+    const THEME_KEY = "gb_tsg_tunnel_theme";
+    const themeBtn = document.getElementById("themeBtn");
+    const savedTheme = localStorage.getItem(THEME_KEY) || "light";
+    if(savedTheme === "dark") document.body.classList.add("dark");
+    themeBtn.addEventListener("click", ()=>{
+      document.body.classList.toggle("dark");
+      localStorage.setItem(THEME_KEY, document.body.classList.contains("dark") ? "dark" : "light");
+    });
 
-<script>
-let data = {
-  L10:{
-    name:"L10",
-    items:[
-      {id:"L10-01",name:"Host Boot Fail",steps:[
-        "Check cables and LEDs",
-        "Reseat BMC sideband",
-        "Reseat BMC",
-        "Replace cable",
-        "Replace BMC",
-        "Escalate to EE"
-      ]}
-    ]
-  },
-  L11:{
-    name:"L11",
-    items:[
-      {id:"L11-01",name:"NVLink Failure",steps:[
-        "Check NVSwitch power",
-        "Verify fiber links",
-        "Reseat NVSwitch",
-        "Retest rack",
-        "Escalate"
-      ]}
-    ]
-  }
-};
+    // ---------------- Data loading ----------------
+    // Expect these files to exist:
+    // ./data/l10.json and ./data/l11.json
+    // Format example:
+    // { "department":"L10", "categories":[{"name":"Network","items":[{"id":"L10-0101","fail_name":"Host Boot Status 0","symptom_name":"...","tags":["pretest"],"steps":["..."]}]}] }
 
-let current="L10";
+    let L10 = null, L11 = null;
+    let currentDept = "L10";
+    let currentData = null;
 
-function loadDept(d){
-  current=d;
-  draw();
-}
+    // D3 tree state
+    let treeStateL10 = null, treeStateL11 = null;
+    let selectedId = null;
 
-function draw(){
-  const svg=d3.select("#viz");
-  svg.selectAll("*").remove();
-  let g=svg.append("g").attr("transform","translate(50,50)");
+    // ---------------- UI refs ----------------
+    const tabL10 = document.getElementById("tabL10");
+    const tabL11 = document.getElementById("tabL11");
+    const q = document.getElementById("q");
+    const scopePill = document.getElementById("scopePill");
+    const badgeCounts = document.getElementById("badgeCounts");
 
-  data[current].items.forEach((i,idx)=>{
-    let y=idx*80;
-    g.append("circle").attr("cx",50).attr("cy",y).attr("r",12)
-      .attr("fill","#1e40af")
-      .on("click",()=>show(i));
-    g.append("text").attr("x",80).attr("y",y+5).text(i.name);
-  });
-}
+    // Modal
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalGrid = document.getElementById("modalGrid");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const rootPickerBtn = document.getElementById("rootPickerBtn");
+    const modalTitle = document.getElementById("modalTitle");
 
-function show(item){
-  let d=document.getElementById("details");
-  d.innerHTML="<b>"+item.name+"</b><br><br>";
-  item.steps.forEach((s,i)=>{
-    d.innerHTML+=`<div>Step ${i+1}: ${s}</div>`;
-  });
-}
+    // ---------------- Helpers ----------------
+    function escapeHtml(str){
+      return (str ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+    function collapseNode(d){ if(d.children){ d._children = d.children; d.children = null; } }
+    function expandNode(d){ if(d._children){ d.children = d._children; d._children = null; } }
 
-function saveLog(){
-  alert("Log saved (local)");
-}
+    // recursive categories support: cat.categories + cat.items
+    function buildCategoryNode(cat){
+      const children = [];
+      (cat.categories || []).forEach(sub => children.push(buildCategoryNode(sub)));
+      (cat.items || []).forEach(it => {
+        children.push({
+          name: `${it.id} — ${it.fail_name}`,
+          type: "fail",
+          item: it
+        });
+      });
+      return { name: cat.name, type: "category", children };
+    }
+    function buildTreeObject(data){
+      return {
+        name: data.department || "ROOT",
+        type: "root",
+        children: (data.categories || []).map(buildCategoryNode)
+      };
+    }
 
-function exportExcel(){
-  alert("Excel exported");
-}
+    function countFails(data){
+      let n=0;
+      function walkCats(cats){
+        for(const c of (cats||[])){
+          n += (c.items||[]).length;
+          walkCats(c.categories||[]);
+        }
+      }
+      walkCats(data?.categories||[]);
+      return n;
+    }
 
-function setTV(){
-  let t=document.getElementById("tvText").value||"System Active";
-  document.getElementById("tvA").textContent=t;
-  document.getElementById("tvB").textContent=t;
-}
+    function rebuildTrees(){
+      if(!L10 || !L11) return;
 
-draw();
-</script>
+      treeStateL10 = d3.hierarchy(buildTreeObject(L10));
+      treeStateL11 = d3.hierarchy(buildTreeObject(L11));
+
+      // collapse top categories
+      treeStateL10.children?.forEach(collapseNode);
+      treeStateL11.children?.forEach(collapseNode);
+
+      badgeCounts.textContent = `Counts: L10=${countFails(L10)} | L11=${countFails(L11)}`;
+    }
+
+    function getActiveRoot(){ return (currentDept==="L10") ? treeStateL10 : treeStateL11; }
+
+    // ---------------- OSINT draw ----------------
+    function drawTree(root, data, term, selected){
+      if(!data || !root) return;
+
+      const svg = d3.select("#viz");
+      svg.selectAll("*").remove();
+
+      const width = svg.node().clientWidth || 900;
+      const height = svg.node().clientHeight || 720;
+      svg.attr("viewBox", `0 0 ${width} ${height}`);
+
+      const layout = d3.tree().size([height - 40, width - 240]);
+      layout(root);
+
+      const match = (d) => {
+        if(!term) return true;
+        const name = (d.data.name || "").toLowerCase();
+        if(name.includes(term)) return true;
+        if(d.data.type === "fail"){
+          const it = d.data.item || {};
+          const blob = [it.id,it.fail_name,it.symptom_name,...(it.tags||[])].filter(Boolean).join(" ").toLowerCase();
+          return blob.includes(term);
+        }
+        return false;
+      };
+
+      const g = svg.append("g").attr("transform", "translate(160,20)");
+
+      g.selectAll("path")
+        .data(root.links())
+        .join("path")
+        .attr("class", d => "link-path" + ((term && !(match(d.source) || match(d.target))) ? " muted" : ""))
+        .attr("d", d3.linkHorizontal().x(d=>d.y).y(d=>d.x));
+
+      const node = g.selectAll("g")
+        .data(root.descendants())
+        .join("g")
+        .attr("transform", d => `translate(${d.y},${d.x})`)
+        .attr("class", d => (term && !match(d)) ? "muted" : "");
+
+      node.append("circle")
+        .attr("r", d => d.data.type === "root" ? 9 : (d.data.type === "category" ? 7 : 6))
+        .attr("class", d => {
+          let c = "node-circle";
+          if(d.data.type === "fail") c += " leaf";
+          if(d.data.type === "fail" && selected && d.data.item && d.data.item.id === selected) c += " selected";
+          return c;
+        })
+        .style("cursor","pointer")
+        .on("click", (evt, d) => {
+          if(d.data.type === "root"){
+            openCatModal();
+            evt.stopPropagation();
+            return;
+          }
+          if(d.data.type === "category"){
+            // collapse siblings
+            if(d.parent && d.parent.children){
+              d.parent.children.forEach(sib => { if(sib !== d) collapseNode(sib); });
+            }
+            if(d.children) collapseNode(d);
+            else expandNode(d);
+            redraw();
+            evt.stopPropagation();
+            return;
+          }
+          if(d.data.type === "fail"){
+            const item = d.data.item;
+            selectedId = item.id;
+            renderDetails(item);
+            redraw();
+            evt.stopPropagation();
+          }
+        });
+
+      node.append("text")
+        .attr("class", "node-label")
+        .attr("dy", "0.32em")
+        .attr("x", d => d.data.type === "root" ? -12 : 12)
+        .attr("text-anchor", d => d.data.type === "root" ? "end" : "start")
+        .text(d => d.data.type === "root" ? (data.department||"ROOT") : d.data.name);
+    }
+
+    function redraw(){
+      const term = (q.value || "").trim().toLowerCase();
+      drawTree(getActiveRoot(), currentData, term, selectedId);
+      scopePill.textContent = `Scope: ${currentDept}`;
+    }
+    q.addEventListener("input", redraw);
+
+    // ---------------- Modal ----------------
+    function openCatModal(){
+      const data = currentData;
+      if(!data) return;
+      modalTitle.textContent = `Pick a category (${currentDept})`;
+      modalGrid.innerHTML = "";
+
+      (data.categories||[]).forEach((cat, idx)=>{
+        const btn = document.createElement("button");
+        btn.className = "catBtn";
+        btn.type = "button";
+        btn.textContent = cat.name;
+        btn.addEventListener("click", ()=>{
+          const root = getActiveRoot();
+          if(root && root.children){
+            root.children.forEach((c, i)=>{
+              if(i === idx) expandNode(c);
+              else collapseNode(c);
+            });
+          }
+          closeModal();
+          redraw();
+        });
+        modalGrid.appendChild(btn);
+      });
+
+      modalOverlay.style.display = "flex";
+    }
+    function closeModal(){ modalOverlay.style.display = "none"; }
+    closeModalBtn.addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", (e)=>{ if(e.target === modalOverlay) closeModal(); });
+    rootPickerBtn.addEventListener("click", openCatModal);
+
+    // ---------------- Switch dept ----------------
+    function switchDept(dept){
+      currentDept = dept;
+      currentData = (dept==="L10") ? L10 : L11;
+      selectedId = null;
+
+      tabL10.classList.toggle("active", dept==="L10");
+      tabL11.classList.toggle("active", dept==="L11");
+
+      const ld = document.getElementById("logDept");
+      if(ld) ld.value = dept;
+
+      document.getElementById("details").innerHTML =
+        `<div class="empty">Select a fail node to view steps. (Enter Rack Location + Server SN on the right, then Start Session.)</div>`;
+      redraw();
+    }
+    tabL10.addEventListener("click", ()=>switchDept("L10"));
+    tabL11.addEventListener("click", ()=>switchDept("L11"));
+
+    // ---------------- Steps tracking ----------------
+    function ensureSessionReady(){
+      const rackLoc = (document.getElementById("logRack")?.value || "").trim();
+      const server = (document.getElementById("logServer")?.value || "").trim();
+      if(!rackLoc){ alert("Enter Rack Location first."); return false; }
+      if(!server){ alert("Enter Server SN first."); return false; }
+      return true;
+    }
+
+    function getSessionKey(item){
+      const rackLoc = (document.getElementById("logRack")?.value || "").trim();
+      const server = (document.getElementById("logServer")?.value || "").trim();
+      const fid = (item?.id || "").trim();
+      return `${currentDept}|${rackLoc}|${server}|${fid}`;
+    }
+
+    function loadStepState(key){
+      try{ return JSON.parse(localStorage.getItem("gb_steps_"+key) || "[]"); }
+      catch{ return []; }
+    }
+    function saveStepState(key, arr){
+      localStorage.setItem("gb_steps_"+key, JSON.stringify(arr));
+    }
+
+    // ---------------- Logs + Excel ----------------
+    const LOG_KEY_L10 = "gb_logs_l10_v2";
+    const LOG_KEY_L11 = "gb_logs_l11_v2";
+
+    function loadLogs(key){ try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; } }
+    function saveLogs(key, arr){ localStorage.setItem(key, JSON.stringify(arr)); }
+    function getRows(dept){ return loadLogs(dept==="L10" ? LOG_KEY_L10 : LOG_KEY_L11); }
+    function addRow(dept, row){
+      const key = dept==="L10" ? LOG_KEY_L10 : LOG_KEY_L11;
+      const rows = loadLogs(key);
+      rows.push(row);
+      saveLogs(key, rows);
+    }
+
+    // ✅ AUTO LOG helper (Option 1)
+    function autoLog(dept, payload){
+      const row = {
+        time: new Date().toISOString(),
+        rack_location: payload.rack_location || "",
+        server_sn: payload.server_sn || "",
+        fail_id: payload.fail_id || "",
+        fail_name: payload.fail_name || "",
+        result: payload.result || "PENDING",
+        notes: payload.notes || ""
+      };
+      if(!row.rack_location || !row.server_sn) return false;
+      addRow(dept, row);
+      renderPreview();
+      return true;
+    }
+
+    function clearLogs(){
+      localStorage.removeItem(LOG_KEY_L10);
+      localStorage.removeItem(LOG_KEY_L11);
+    }
+
+    function renderPreview(){
+      const tbody = document.getElementById("logPreview");
+      if(!tbody) return;
+
+      const l10 = getRows("L10").map(r=>({...r, dept:"L10"}));
+      const l11 = getRows("L11").map(r=>({...r, dept:"L11"}));
+      const all = l10.concat(l11).sort((a,b)=> (a.time||"").localeCompare(b.time||""));
+      const last = all.slice(-20).reverse();
+
+      tbody.innerHTML = "";
+      for(const r of last){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="padding:8px; border-top:1px solid var(--line);">${(r.time||"").replace("T"," ").replace("Z","")}</td>
+          <td style="padding:8px; border-top:1px solid var(--line);">${escapeHtml(r.dept||"")}</td>
+          <td style="padding:8px; border-top:1px solid var(--line);">${escapeHtml(r.rack_location||"")}</td>
+          <td style="padding:8px; border-top:1px solid var(--line);">${escapeHtml(r.server_sn||"")}</td>
+          <td style="padding:8px; border-top:1px solid var(--line);">${escapeHtml(r.fail_id||"")}</td>
+          <td style="padding:8px; border-top:1px solid var(--line);">${escapeHtml(r.result||"")}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function wireLogsUI(){
+      const rack = document.getElementById("logRack");
+      const server = document.getElementById("logServer");
+      const dept = document.getElementById("logDept");
+      const result = document.getElementById("logResult");
+      const failId = document.getElementById("logFailId");
+      const failName = document.getElementById("logFailName");
+      const notes = document.getElementById("logNotes");
+
+      const addBtn = document.getElementById("addLogBtn");
+      const exportBtn = document.getElementById("exportXlsxBtn");
+      const clearBtn = document.getElementById("clearLogsBtn");
+
+      dept.value = currentDept;
+
+      addBtn.addEventListener("click", ()=>{
+        const d = dept.value;
+        const row = {
+          time: new Date().toISOString(),
+          rack_location: (rack.value||"").trim(),
+          server_sn: (server.value||"").trim(),
+          fail_id: (failId.value||"").trim(),
+          fail_name: (failName.value||"").trim(),
+          result: (result.value||"PENDING").trim(),
+          notes: (notes.value||"").trim()
+        };
+        if(!row.rack_location){ alert("Rack Location is required."); return; }
+        if(!row.server_sn){ alert("Server SN is required."); return; }
+        addRow(d, row);
+        renderPreview();
+      });
+
+      exportBtn.addEventListener("click", ()=>{
+        const l10 = getRows("L10");
+        const l11 = getRows("L11");
+        const headers = ["time","rack_location","server_sn","fail_id","fail_name","result","notes"];
+        const toAOA = (rows) => [headers].concat(rows.map(r => headers.map(h => (r[h] ?? ""))));
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(toAOA(l10)), "L10_LOGS");
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(toAOA(l11)), "L11_LOGS");
+        const stamp = new Date().toISOString().slice(0,10);
+        XLSX.writeFile(wb, `GB300_TSG_Tunnel_Logs_${stamp}.xlsx`);
+      });
+
+      clearBtn.addEventListener("click", ()=>{
+        if(!confirm("Clear local logs for BOTH L10 and L11?")) return;
+        clearLogs();
+        renderPreview();
+      });
+
+      renderPreview();
+    }
+
+    // ---------------- Details panel ----------------
+    function renderDetails(item){
+      const details = document.getElementById("details");
+      if(!item){
+        details.innerHTML = `<div class="empty">Select a fail node to view steps.</div>`;
+        return;
+      }
+
+      const tags = (item.tags||[]).map(t=>`<span class="pill">${escapeHtml(t)}</span>`).join("");
+
+      details.innerHTML = `
+        <h2 class="sectionTitle">${escapeHtml(item.id || "")} — ${escapeHtml(item.fail_name || "")}</h2>
+        <p class="sub">${escapeHtml(item.symptom_name || "")}</p>
+
+        <div class="metaRow" style="margin-top:10px;">
+          <span class="pill">${currentDept}</span>
+          ${tags}
+        </div>
+
+        <div style="margin-top:12px; padding:10px; border:1px solid var(--line); border-radius:12px;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <button class="btn primary" id="startSessionBtn" type="button">Start Session</button>
+            <button class="btn" id="resetSessionBtn" type="button">Reset Steps</button>
+          </div>
+          <p class="sub" style="margin-top:8px;">
+            Steps tracked per <b>Rack Location + Server SN + Fail ID</b> to prevent repeated actions.
+          </p>
+        </div>
+
+        <div id="checklistWrap" style="margin-top:10px;"></div>
+      `;
+
+      // auto-fill log fields from click
+      const lfId = document.getElementById("logFailId");
+      const lfName = document.getElementById("logFailName");
+      const ld = document.getElementById("logDept");
+      if(lfId) lfId.value = item.id || "";
+      if(lfName) lfName.value = item.fail_name || "";
+      if(ld) ld.value = currentDept;
+
+      const checklistWrap = document.getElementById("checklistWrap");
+
+      function renderChecklist(){
+        checklistWrap.innerHTML = "";
+
+        if(!ensureSessionReady()){
+          checklistWrap.innerHTML = `<div class="empty">Enter Rack Location + Server SN (right panel), then click Start Session.</div>`;
+          return;
+        }
+
+        const key = getSessionKey(item);
+        const state = loadStepState(key); // [{i,time}]
+        const doneMap = new Map(state.map(x=>[x.i, x]));
+
+        const stepsSource = (item.steps && item.steps.length) ? item.steps : [
+          "Inspect cables and LEDs, confirm seating and link lights.",
+          "Reseat suspected connection/module on indicated side.",
+          "Retest and confirm symptom behavior change.",
+          "Replace suspected cable/component and retest.",
+          "Escalate with logs + actions taken to TE/EE/QCI."
+        ];
+
+        stepsSource.forEach((stepText, i)=>{
+          const done = doneMap.get(i);
+          const box = document.createElement("div");
+          box.className = "step";
+          const checked = done ? "checked" : "";
+          const disabled = done ? "disabled" : "";
+          const when = done ? `<div class="sub" style="margin-top:6px;">Done: ${escapeHtml(done.time)}</div>` : "";
+
+          box.innerHTML = `
+            <label class="checkRow">
+              <input type="checkbox" ${checked} ${disabled} data-step="${i}">
+              <div>
+                <div style="font-weight:1000;"><b>Step ${i+1}</b></div>
+                <div class="sub" style="margin-top:2px;">${escapeHtml(stepText)}</div>
+                ${when}
+              </div>
+            </label>
+          `;
+          checklistWrap.appendChild(box);
+        });
+
+        checklistWrap.querySelectorAll("input[type='checkbox']").forEach(cb=>{
+          cb.addEventListener("change", ()=>{
+            if(!ensureSessionReady()) return;
+
+            const idx = parseInt(cb.getAttribute("data-step"), 10);
+            const key = getSessionKey(item);
+            const st = loadStepState(key);
+            if(st.some(x => x.i === idx)) return; // prevent repeat
+
+            const stamp = new Date().toLocaleString();
+            st.push({i: idx, time: stamp});
+            saveStepState(key, st);
+            renderChecklist();
+          });
+        });
+      }
+
+      // Buttons
+      const startBtn = document.getElementById("startSessionBtn");
+      const resetBtn = document.getElementById("resetSessionBtn");
+
+      // ✅ AUTO LOG Option 1: when session starts
+      startBtn.addEventListener("click", ()=>{
+        if(!ensureSessionReady()) return;
+
+        const rackLoc = (document.getElementById("logRack")?.value || "").trim();
+        const serverSN = (document.getElementById("logServer")?.value || "").trim();
+
+        autoLog(currentDept, {
+          rack_location: rackLoc,
+          server_sn: serverSN,
+          fail_id: item.id || "",
+          fail_name: item.fail_name || "",
+          result: "PENDING",
+          notes: "Session started"
+        });
+
+        renderChecklist();
+      });
+
+      resetBtn.addEventListener("click", ()=>{
+        if(!ensureSessionReady()) return;
+        const ok = confirm("Reset checklist for this Rack Location + Server SN + Fail ID?");
+        if(!ok) return;
+        const key = getSessionKey(item);
+        localStorage.removeItem("gb_steps_"+key);
+        renderChecklist();
+      });
+
+      // Show hint until Start Session
+      renderChecklist();
+    }
+
+    // ---------------- Ticker banner ----------------
+    const TICKER_KEY_TEXT  = "gb_ticker_text_v2";
+    const TICKER_KEY_SPEED = "gb_ticker_speed_v2";
+    const TICKER_KEY_PAUSE = "gb_ticker_pause_v2";
+
+    const tickerInput = document.getElementById("tickerInput");
+    const tickerGoBtn = document.getElementById("tickerGoBtn");
+    const tickerPauseBtn = document.getElementById("tickerPauseBtn");
+    const tickerTrack = document.getElementById("tickerTrack");
+    const tickerTextA = document.getElementById("tickerTextA");
+    const tickerTextB = document.getElementById("tickerTextB");
+    const tickerSpeed = document.getElementById("tickerSpeed");
+    const tickerSpeedLabel = document.getElementById("tickerSpeedLabel");
+
+    function setTickerText(t){
+      const text = (t || "").trim() || "⚡ GB300 TSG Tunnel — Follow the steps. No repeats. ⚡";
+      tickerTextA.textContent = text;
+      tickerTextB.textContent = text;
+      localStorage.setItem(TICKER_KEY_TEXT, text);
+    }
+    function setTickerSpeed(sec){
+      const s = Math.max(18, Math.min(90, Number(sec)||45));
+      tickerTrack.style.animationDuration = `${s}s`;
+      tickerSpeedLabel.textContent = `${s}s`;
+      localStorage.setItem(TICKER_KEY_SPEED, String(s));
+    }
+    function setTickerPaused(paused){
+      tickerTrack.style.animationPlayState = paused ? "paused" : "running";
+      tickerPauseBtn.textContent = paused ? "Resume" : "Pause";
+      localStorage.setItem(TICKER_KEY_PAUSE, paused ? "1" : "0");
+    }
+
+    tickerGoBtn.addEventListener("click", ()=>{
+      setTickerText(tickerInput.value);
+      setTickerPaused(false);
+    });
+    tickerInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter"){
+        e.preventDefault();
+        setTickerText(tickerInput.value);
+        setTickerPaused(false);
+      }
+    });
+    tickerPauseBtn.addEventListener("click", ()=>{
+      const paused = (tickerTrack.style.animationPlayState !== "paused");
+      setTickerPaused(paused);
+    });
+    tickerSpeed.addEventListener("input", ()=> setTickerSpeed(tickerSpeed.value));
+
+    // init ticker from storage
+    const savedTickerText = localStorage.getItem(TICKER_KEY_TEXT) || "";
+    const savedTickerSpeed = localStorage.getItem(TICKER_KEY_SPEED) || "45";
+    const savedTickerPause = localStorage.getItem(TICKER_KEY_PAUSE) || "0";
+    tickerInput.value = savedTickerText || "⚡ GB300 TSG Tunnel — Follow the steps. No repeats. ⚡";
+    setTickerText(tickerInput.value);
+    tickerSpeed.value = savedTickerSpeed;
+    setTickerSpeed(savedTickerSpeed);
+    setTickerPaused(savedTickerPause === "1");
+
+    // ---------------- Boot ----------------
+    Promise.all([
+      fetch("./data/l10.json", {cache:"no-store"}).then(r=>r.json()),
+      fetch("./data/l11.json", {cache:"no-store"}).then(r=>r.json())
+    ]).then(([a,b])=>{
+      L10 = a; L11 = b;
+      rebuildTrees();
+      currentData = L10;
+      wireLogsUI();
+      switchDept("L10");
+    }).catch(err=>{
+      console.error(err);
+      document.getElementById("details").innerHTML =
+        `<div class="empty">Failed to load ./data/l10.json or ./data/l11.json (check paths + filenames).</div>`;
+    });
+
+  })();
+  </script>
 </body>
 </html>
