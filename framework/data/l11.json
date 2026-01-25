@@ -1,0 +1,11 @@
+{
+  "department": "L11",
+  "platform": "GB300",
+  "id_policy": { "min": 1, "max": 500, "prefix": "L11-", "pad": 4, "reuse": false },
+  "next_id_num": 1,
+  "categories": [
+    { "name": "GPU / NVLink / ECC", "items": [] },
+    { "name": "BMC / Telemetry / Logs", "items": [] },
+    { "name": "RCA / Escalation", "items": [] }
+  ]
+}
