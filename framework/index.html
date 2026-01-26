@@ -339,7 +339,11 @@ html, body { width: 100%; overflow-x: hidden; }
           </div>
           <div>
             <p class="sub" style="margin:0 0 6px; font-weight:1000; color:var(--brand2);">Server Serial Number (REQUIRED)</p>
-            <input id="logServer" type="text" placeholder="Scan or type Server SN (ex: SN-GB300-00123)" />
+            <div style="display:flex; gap:10px; align-items:center;">
+  <input id="logServer" type="text" placeholder="Server Serial Number" style="flex:1;">
+  <button class="btn" id="scanSNBtn" type="button">Scan SN</button>
+</div>
+
             <p class="sub" style="margin-top:6px;">Each Server SN keeps its own repair session + step history.</p>
           </div>
 
@@ -1029,5 +1033,17 @@ html, body { width: 100%; overflow-x: hidden; }
 
   })();
   </script>
+  <div id="scanModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:9999;">
+  <div style="max-width:900px; margin:30px auto; background:#0b1326; border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <b style="color:#fff;">Scan Serial Number</b>
+      <button class="btn" id="closeScanBtn" type="button">Close</button>
+    </div>
+    <p class="sub" style="margin:8px 0 10px;">Point camera at barcode/QR. If unsupported, type SN manually.</p>
+    <video id="scanVideo" playsinline style="width:100%; border-radius:12px; background:#000;"></video>
+    <div class="sub" id="scanStatus" style="margin-top:10px;">Starting camera…</div>
+  </div>
+</div>
+
 </body>
 </html>
