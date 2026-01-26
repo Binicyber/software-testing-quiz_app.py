@@ -11,6 +11,60 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
+/* ===== FIT SCREEN PATCH ===== */
+
+/* Stop any sideways overflow */
+html, body { width: 100%; overflow-x: hidden; }
+
+/* Let layout breathe on smaller screens */
+.wrap { max-width: 100%; }
+
+/* IMPORTANT: allow grid children to shrink (prevents overflow) */
+.grid > .pane { min-width: 0; }
+
+/* Use viewport height instead of fixed 820px */
+#viz{
+  height: calc(100vh - 320px);  /* fits under header */
+  min-height: 420px;            /* never too small */
+}
+
+/* Side panels scroll inside themselves */
+#details, #logsPane{
+  max-height: calc(100vh - 320px);
+  overflow: auto;
+}
+
+/* Better responsive columns:
+   - 3 columns only on very wide screens
+   - 2 columns on normal desktops
+   - 1 column on small screens */
+.grid{
+  grid-template-columns: 1.7fr 1fr; /* OSINT + right column */
+}
+@media (min-width: 1400px){
+  .grid{ grid-template-columns: 1.6fr .8fr .8fr; } /* only for big monitors */
+}
+@media (max-width: 1100px){
+  .grid{ grid-template-columns: 1fr; }
+  #viz{ height: 60vh; }
+  #details, #logsPane{ max-height: none; }
+}
+
+/* Make the ticker compact so it doesn't eat screen */
+.tickerBar{
+  padding: 8px;
+}
+.tickerTrack{
+  padding: 8px 12px;
+}
+.tickerText{
+  font-size: 16px; /* slightly smaller */
+}
+.tickerControls input[type="text"]{
+  flex: 1 1 260px;
+  min-width: 200px;
+}
+
     :root{
       /* Softer light theme (not too white) */
       --bg:#eef1f6;
