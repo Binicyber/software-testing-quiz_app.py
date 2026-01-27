@@ -1,223 +1,1622 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>GB300 TSG Tunnel</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SheetJS (Excel export) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0b1220;
-  color: #eaeaea;
-}
-.container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 20px;
-}
-h1 {
-  text-align: center;
-  color: #4cc3ff;
-}
-.sub {
-  font-size: 14px;
-  opacity: .8;
-}
-input, button {
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
-  font-size: 15px;
-}
-input {
-  width: 100%;
-}
-button {
-  cursor: pointer;
-  background: #1e88e5;
-  color: white;
-}
-button:hover { background: #1565c0; }
+  :root{
+    --bg:#0b1220;
+    --panel:#0f1a30;
+    --panel2:#0c1529;
+    --text:#eaf0ff;
+    --muted:#a9b6d6;
+    --line:rgba(255,255,255,.10);
+    --accent:#4cc3ff;
+    --good:#21d38b;
+    --warn:#f0c04a;
+    --bad:#ff6b6b;
+    --btn:#163b77;
+    --btn2:#1f4aa0;
+    --gold:#f2c14e;
+  }
+  [data-theme="light"]{
+    --bg:#f2f4f8;
+    --panel:#ffffff;
+    --panel2:#ffffff;
+    --text:#0d1b2a;
+    --muted:#4c5a73;
+    --line:rgba(0,0,0,.10);
+    --accent:#0b63d1;
+    --good:#0b8f55;
+    --warn:#b17600;
+    --bad:#b3261e;
+    --btn:#dbe8ff;
+    --btn2:#c7dcff;
+    --gold:#a67400;
+  }
 
-.section {
-  background: #111a2b;
-  padding: 15px;
-  border-radius: 10px;
-  margin-top: 15px;
-}
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  .wrap{ max-width:1200px; margin:0 auto; padding:14px; padding-bottom:96px; }
+  .top{
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+  }
+  .titleRow{ display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+  .titleBlock h1{ margin:0; font-size:22px; color:var(--accent); letter-spacing:.3px; }
+  .titleBlock .sub{ margin-top:4px; color:var(--muted); font-size:13px; }
+  .btnRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end; }
+  .btn{
+    border:1px solid var(--line);
+    background:var(--btn);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .btn:hover{ background:var(--btn2); }
+  .btn.primary{ border-color:rgba(76,195,255,.35); }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border:1px solid var(--line);
+    padding:8px 10px;
+    border-radius:999px;
+    color:var(--muted);
+    font-size:13px;
+    background:rgba(0,0,0,.12);
+  }
+  [data-theme="light"] .pill{ background:rgba(0,0,0,.03); }
 
-.pill {
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: 1px solid #555;
-}
+  .grid{
+    margin-top:14px;
+    display:grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap:14px;
+    align-items:start;
+  }
+  @media (max-width: 980px){
+    .grid{ grid-template-columns: 1fr; }
+  }
 
-#scanModal {
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.8);
-  z-index:9999;
-}
-#scanModal > div {
-  background:#0b1220;
-  margin:40px auto;
-  max-width:900px;
-  padding:20px;
-  border-radius:12px;
-}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .cardHead{
+    padding:12px 12px 10px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .cardHead b{ font-size:14px; letter-spacing:.2px; }
+  .cardBody{ padding:12px; }
+
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .field{ width:100%; }
+  .field label{ display:block; font-size:12px; color:var(--muted); margin:6px 0; }
+  .field input, .field select, .field textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+    background:var(--panel2);
+    color:var(--text);
+    outline:none;
+  }
+  textarea{ min-height:72px; resize:vertical; }
+  .two{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  @media (max-width: 520px){ .two{ grid-template-columns:1fr; } }
+
+  .notice{
+    padding:10px 12px;
+    border:1px dashed var(--line);
+    border-radius:14px;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
+    background:rgba(0,0,0,.10);
+  }
+  [data-theme="light"] .notice{ background:rgba(0,0,0,.02); }
+
+  /* Diagram */
+  .diagramWrap{
+    background:radial-gradient(800px 400px at 40% 40%, rgba(76,195,255,.10), rgba(0,0,0,0));
+    border-radius:16px;
+    overflow:hidden;
+    position:relative;
+    min-height:520px;
+  }
+  @media (max-width: 980px){
+    .diagramWrap{ min-height:420px; }
+  }
+  .diagramToolbar{
+    position:absolute;
+    top:10px; left:10px; right:10px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    z-index:2;
+  }
+  .search{
+    flex:1;
+    min-width:220px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    background:rgba(0,0,0,.20);
+    color:var(--text);
+    outline:none;
+  }
+  [data-theme="light"] .search{ background:rgba(0,0,0,.03); }
+  .miniBtn{
+    border:1px solid var(--line);
+    background:rgba(0,0,0,.18);
+    color:var(--text);
+    padding:9px 10px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:700;
+  }
+  [data-theme="light"] .miniBtn{ background:rgba(0,0,0,.03); }
+  .miniBtn:hover{ filter:brightness(1.06); }
+
+  svg{ width:100%; height:100%; display:block; }
+  .nodeCircle{ stroke:rgba(255,255,255,.35); stroke-width:2; fill:rgba(15,26,48,.95); }
+  [data-theme="light"] .nodeCircle{ fill:rgba(255,255,255,.95); stroke:rgba(0,0,0,.25); }
+  .nodeCircle.open{ stroke:rgba(76,195,255,.9); }
+  .nodeCircle.leaf{ stroke:rgba(33,211,139,.85); }
+  .nodeCircle.active{ stroke:rgba(242,193,78,.95); }
+  .nodeText{ fill:var(--text); font-size:14px; font-weight:700; }
+  .nodeText.small{ font-size:12px; font-weight:600; fill:var(--muted); }
+  .edge{ stroke:rgba(255,255,255,.18); stroke-width:2; fill:none; }
+  [data-theme="light"] .edge{ stroke:rgba(0,0,0,.12); }
+
+  /* Steps */
+  .stepList{ display:flex; flex-direction:column; gap:10px; }
+  .step{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:10px;
+    background:rgba(0,0,0,.10);
+  }
+  [data-theme="light"] .step{ background:rgba(0,0,0,.02); }
+  .stepTop{ display:flex; gap:10px; align-items:flex-start; justify-content:space-between; }
+  .stepTop b{ font-size:13px; }
+  .stepTop span{ font-size:12px; color:var(--muted); }
+  .stepActions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    color:var(--muted);
+  }
+
+  /* Banner / ticker */
+  .ticker{
+    position:fixed;
+    left:12px; right:12px;
+    bottom:12px;
+    background:rgba(0,0,0,.20);
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+    z-index:999;
+    backdrop-filter: blur(8px);
+  }
+  [data-theme="light"] .ticker{ background:rgba(255,255,255,.75); }
+  .tickerInner{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+  }
+  .tickerLabel{
+    color:var(--gold);
+    font-weight:900;
+    letter-spacing:.4px;
+    white-space:nowrap;
+  }
+  .marquee{
+    position:relative;
+    flex:1;
+    overflow:hidden;
+    height:20px;
+  }
+  .marquee span{
+    position:absolute;
+    white-space:nowrap;
+    will-change:transform;
+    color:var(--gold);
+    font-weight:800;
+    text-shadow: 0 0 10px rgba(242,193,78,.35);
+  }
+  .tickerControls{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .slider{ width:140px; }
+  .small{ font-size:12px; color:var(--muted); }
+
+  /* Modal scan */
+  #scanModal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.78);
+    z-index:2000;
+  }
+  #scanModal .box{
+    max-width:900px;
+    margin:24px auto;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:12px;
+  }
+  #scanModal video{
+    width:100%;
+    border-radius:14px;
+    background:#000;
+  }
+
+  /* connection pill */
+  .connPill{
+    border-style:solid;
+    border-width:1px;
+    border-radius:999px;
+    padding:6px 10px;
+    font-size:12px;
+    font-weight:800;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
 </style>
 </head>
 
 <body>
-<div class="container">
+<div class="wrap">
 
-<h1>GB300 TSG Tunnel</h1>
-<p class="sub" style="text-align:center;">L10 / L11 Diagnostic Framework</p>
+  <div class="top">
+    <div class="titleRow">
+      <div class="titleBlock">
+        <h1>GB300 TSG Tunnel</h1>
+        <div class="sub">OSINT-style navigation for <b>L10 (single server)</b> and <b>L11 (rack/cluster)</b>. Steps + logs + Excel export.</div>
+        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+          <span class="pill" id="scopePill">Scope: L10</span>
+          <span class="pill" id="countPill">Counts: L10=0 | L11=0</span>
+          <span class="pill" id="hbPill">Open-Test: OFF</span>
+        </div>
+      </div>
 
-<!-- USER -->
-<div class="section">
-  <b>User Info</b><br><br>
-  <input id="userName" placeholder="Your Name"><br><br>
-  <input id="emailGoogle" placeholder="Google / Open-Test Email"><br><br>
-  <input id="emailMS" placeholder="MS Work Email">
-</div>
-
-<!-- SERVER -->
-<div class="section">
-  <b>Server</b><br><br>
-
-  <div style="display:flex;gap:10px;">
-    <input id="logServer" placeholder="Server Serial Number">
-    <button id="scanSNBtn">Scan SN</button>
+      <div class="btnRow">
+        <button class="btn" id="toggleThemeBtn">Toggle dark mode</button>
+        <button class="btn primary" id="pickScopeBtn">Pick category</button>
+        <button class="btn" id="exportBtn">Export Excel</button>
+      </div>
+    </div>
   </div>
 
-  <br>
-  <input id="logRack" placeholder="Rack Location">
-</div>
+  <div class="grid">
 
-<!-- HEARTBEAT -->
-<div class="section">
-  <b>Open-Test Heartbeat</b><br><br>
-
-  <span id="hbPill" class="pill">OFF</span>
-  <label style="margin-left:10px;">
-    <input type="checkbox" id="hbEnable"> Enable
-  </label>
-  <button id="hbNowBtn">Refresh</button>
-
-  <div id="hbInfo" class="sub" style="margin-top:10px;">No data yet</div>
-</div>
-
-<!-- ACTION -->
-<div class="section">
-  <b>Actions</b><br><br>
-  <button onclick="alert('L10 flow coming next')">Start L10</button>
-</div>
-
-</div>
-
-<!-- SCAN MODAL -->
-<div id="scanModal">
-  <div>
-    <div style="display:flex;justify-content:space-between;">
-      <b>Scan Serial Number</b>
-      <button onclick="closeScan()">Close</button>
+    <!-- LEFT: Diagram -->
+    <div class="card">
+      <div class="cardHead">
+        <b>OSINT Diagram</b>
+        <div class="row" style="justify-content:flex-end;">
+          <button class="miniBtn" id="zoomInBtn">+</button>
+          <button class="miniBtn" id="zoomOutBtn">−</button>
+          <button class="miniBtn" id="resetViewBtn">Reset</button>
+        </div>
+      </div>
+      <div class="cardBody">
+        <div class="diagramWrap" id="diagramWrap">
+          <div class="diagramToolbar">
+            <input class="search" id="searchBox" placeholder="Search: fail id, fail name, symptom, tag..." />
+            <button class="miniBtn" id="collapseBtn">Collapse</button>
+          </div>
+          <svg id="svg"></svg>
+        </div>
+        <div class="notice" style="margin-top:10px;">
+          Tap circles to expand/contract. Tap a leaf to open steps.<br>
+          <b>Rule:</b> Steps are locked — complete in order. Escalation can happen any time.
+        </div>
+      </div>
     </div>
-    <p class="sub">Use camera or barcode label</p>
-    <video id="scanVideo" style="width:100%;border-radius:10px;"></video>
-    <div id="scanStatus" class="sub">Starting camera...</div>
+
+    <!-- MIDDLE: Steps -->
+    <div class="card">
+      <div class="cardHead">
+        <b>Steps & Actions</b>
+        <span class="small" id="selectedLabel">No fail selected</span>
+      </div>
+      <div class="cardBody">
+
+        <div class="two">
+          <div class="field">
+            <label>User Name (required)</label>
+            <input id="userName" placeholder="Your full name" />
+          </div>
+          <div class="field">
+            <label>Open-Test Email (Google) (optional)</label>
+            <input id="emailGoogle" placeholder="name@company.com (Google/Open-Test)" />
+          </div>
+        </div>
+
+        <div class="two">
+          <div class="field">
+            <label>Work Email (Microsoft SSO) (optional)</label>
+            <input id="emailMS" placeholder="name@company.com (Microsoft/SSO)" />
+          </div>
+          <div class="field">
+            <label>Agent URL (heartbeat)</label>
+            <input id="agentUrl" placeholder="http://127.0.0.1:8787" />
+          </div>
+        </div>
+
+        <!-- Phone Connector (LAN) + Test Connection -->
+        <div class="two" style="margin-top:10px;">
+          <div class="field">
+            <label>Phone Connector (same Wi-Fi / same LAN) — Laptop IPv4</label>
+            <input id="lanIp" placeholder="Laptop IPv4 (ex: 192.168.1.44)" />
+          </div>
+          <div class="field">
+            <label>Port</label>
+            <input id="lanPort" placeholder="8787" value="8787" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px; align-items:center;">
+          <button class="btn" id="useLanBtn" type="button">Use LAN Agent URL</button>
+          <button class="btn" id="useLocalBtn" type="button">Use Localhost (Laptop)</button>
+          <button class="btn primary" id="testConnBtn" type="button">Test Connection</button>
+          <span id="connStatus" class="connPill" style="border-color:var(--line); color:var(--muted);">● not tested</span>
+        </div>
+
+        <div class="notice" id="lanHint" style="margin-top:10px;">
+          Tip: iPhone cannot use <b>127.0.0.1</b>. Use your laptop IPv4 on the same Wi-Fi/LAN.
+        </div>
+
+        <div class="two" style="margin-top:10px;">
+          <div class="field">
+            <label>Rack Location (required)</label>
+            <input id="logRack" placeholder="Rack location (ex: ROW3-BAY4)" />
+          </div>
+          <div class="field">
+            <label>Server Serial Number (required)</label>
+            <div class="row" style="flex-wrap:nowrap;">
+              <input id="logServer" placeholder="Scan or type Server SN" />
+              <button class="btn" id="scanSNBtn" type="button" style="white-space:nowrap;">Scan SN</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="two">
+          <div class="field">
+            <label>Result</label>
+            <select id="resultSelect">
+              <option value="PENDING">PENDING</option>
+              <option value="PASS">PASS</option>
+              <option value="FAIL">FAIL</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Heartbeat</label>
+            <div class="row" style="align-items:center;">
+              <label class="pill" style="cursor:pointer;">
+                <input type="checkbox" id="hbEnable" style="margin-right:8px;"> Heartbeat ON
+              </label>
+              <button class="btn" id="hbNowBtn" type="button">Refresh</button>
+              <span class="small" id="hbLast">Last: —</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="notice" id="hbInfo" style="margin-top:10px;">Open-Test: not connected yet.</div>
+
+        <div class="field" style="margin-top:12px;">
+          <label>Repair Request Note (required when sending to REPAIR)</label>
+          <textarea id="repairRequest" placeholder="What you want Repair to do… (include side/slot/part serials if needed)"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Repair Response (REPAIR fills this)</label>
+          <textarea id="repairResponse" placeholder="Repair action taken, parts replaced, retest result…"></textarea>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn primary" id="startSessionBtn" type="button">Start Session</button>
+          <button class="btn" id="resetStepsBtn" type="button">Reset Steps</button>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn" id="escTEBtn" type="button">Escalate → TE</button>
+          <button class="btn" id="escEEBtn" type="button">Escalate → EE</button>
+          <button class="btn" id="escQCIBtn" type="button">Escalate → QCI</button>
+          <button class="btn primary" id="markRepairBtn" type="button">Mark → REPAIR</button>
+          <button class="btn primary" id="submitRepairRespBtn" type="button">Submit Repair Response</button>
+        </div>
+
+        <div style="margin-top:14px;">
+          <div class="row" style="align-items:center; justify-content:space-between;">
+            <b style="font-size:14px;">Checklist</b>
+            <span class="small" id="stepHint">Select a fail node to view steps.</span>
+          </div>
+          <div class="stepList" id="stepList" style="margin-top:10px;"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: Logs -->
+    <div class="card">
+      <div class="cardHead">
+        <b>Logs — Local PC (safe)</b>
+        <span class="small">Exports ONE Excel file with multiple sheets.</span>
+      </div>
+      <div class="cardBody">
+        <div class="notice">
+          Required to start: <b>Name</b> + at least <b>one valid email</b> (Google or Microsoft) + <b>Rack</b> + <b>Server SN</b>.
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <button class="btn" id="clearLogsBtn">Clear Logs</button>
+          <button class="btn" id="useHbFailBtn">Use heartbeat fail in wizard</button>
+        </div>
+
+        <div class="notice" style="margin-top:10px; max-height:320px; overflow:auto;" id="logPreview">No logs yet.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Ticker -->
+<div class="ticker">
+  <div class="tickerInner">
+    <div class="tickerLabel">⚡ GB300 TSG Tunnel</div>
+    <div class="marquee"><span id="marqueeText">— Follow the steps. No repeats. —</span></div>
+    <div class="tickerControls">
+      <input id="moodInput" class="pill" style="width:220px;" placeholder="Type your daily quote/mood…" />
+      <button class="btn" id="setMoodBtn">Set</button>
+      <button class="btn" id="pauseMoodBtn">Pause</button>
+      <span class="small">Speed</span>
+      <input class="slider" id="speedSlider" type="range" min="10" max="120" value="58" />
+    </div>
+  </div>
+</div>
+
+<!-- Scan Modal -->
+<div id="scanModal">
+  <div class="box">
+    <div class="row" style="align-items:center; justify-content:space-between;">
+      <b style="font-size:16px;">Scan Serial Number</b>
+      <button class="btn" id="closeScanBtn" type="button">Close</button>
+    </div>
+    <p class="small">iPhone supported (ZXing). If camera is blocked, type SN manually.</p>
+    <video id="scanVideo" playsinline></video>
+    <div class="notice" id="scanStatus" style="margin-top:10px;">Starting camera…</div>
   </div>
 </div>
 
 <script>
-// ========================
-// HEARTBEAT
-// ========================
-const OPENTEST = "http://127.0.0.1:8787";
-let hbTimer = null;
+/* =========================================================
+   DATA: L10 + L11 (demo placeholders; you replace later)
+   ========================================================= */
+const DATA = {
+  L10: {
+    name: "L10",
+    children: [
+      {
+        name: "Pretest Fail",
+        children: [
+          { name: "Boot Status", children: [
+            { id: "", fail_name: "Host Boot Status 0", symptom_name: "Host boot status shows 0 / no boot", steps: [
+              "Inspect visually: confirm RJ45 + all cables seated and link LEDs are green.",
+              "If LED is off: reseat failure side BMC interposer cable + sideband cable.",
+              "If still failing: reseat BMC module.",
+              "Replace sideband cable.",
+              "Replace BMC module.",
+              "Escalate to TE / EE / QCI if still failing."
+            ]}
+          ]},
+          { name: "BIOS", children: [
+            { id: "", fail_name: "BIOS Flash/Verify Fail", symptom_name: "BIOS flash verification failed", steps: [
+              "Confirm correct image/version per build.",
+              "Reflash BIOS once; verify completion logs.",
+              "Clear CMOS + power drain; retry flash.",
+              "Reseat relevant mezz/boot device if applicable.",
+              "Escalate to TE / EE / QCI."
+            ]}
+          ]},
+          { name: "Firmware / BMC", children: [
+            { id: "", fail_name: "BMC Not Responding", symptom_name: "Cannot reach BMC / no IP", steps: [
+              "Check BMC cable + link LEDs.",
+              "Power drain (AC cycle) and retry.",
+              "Reflash BMC firmware (if allowed).",
+              "Replace BMC module.",
+              "Escalate TE / EE / QCI."
+            ]}
+          ]},
+          { name: "Network", children: [
+            { id: "", fail_name: "NIC Link Down", symptom_name: "No link / wrong port / cabling issue", steps: [
+              "Verify cable is in the correct port position per rack map.",
+              "Check link LED; reseat QSFP/RJ45 ends.",
+              "Swap cable with known-good.",
+              "Swap port (if allowed) and retest.",
+              "Escalate TE / EE / QCI."
+            ]}
+          ]},
+          { name: "Storage (NVMe/SSD)", children: [
+            { id: "", fail_name: "NVMe 0 Not Detected", symptom_name: "NVMe0 missing", steps: [
+              "Reseat NVMe/SSD on correct side/slot.",
+              "Confirm part number + label matches BOM.",
+              "Swap with known-good NVMe (if allowed).",
+              "Check backplane/connector for damage.",
+              "Escalate TE / EE / QCI."
+            ]}
+          ]}
+        ]
+      },
+      {
+        name: "FAT Fail",
+        children: [
+          { name: "CPU", children: [
+            { id: "", fail_name: "CPU Stress Fail", symptom_name: "CPU stress test fails", steps: [
+              "Verify heatsink seated + torque pattern if applicable.",
+              "Check thermal paste / contact (per SOP).",
+              "Reseat CPU (if allowed).",
+              "Replace CPU (if allowed).",
+              "Escalate TE / EE / QCI."
+            ]}
+          ]},
+          { name: "GPU", children: [
+            { id: "", fail_name: "GPU Not Detected", symptom_name: "GPU missing during FAT", steps: [
+              "Reseat GPU + verify retention hardware.",
+              "Inspect NVLink cables/connectors (if applicable).",
+              "Re-run FAT; verify logs.",
+              "Replace GPU (if allowed).",
+              "Escalate TE / EE / QCI."
+            ]}
+          ]},
+          { name: "Memory", children: [
+            { id: "", fail_name: "DIMM ECC/Training Fail", symptom_name: "Memory training/ECC failures", steps: [
+              "Reseat DIMMs in the reported slot(s).",
+              "Swap DIMM with known-good.",
+              "Inspect slot for debris/damage.",
+              "Escalate TE / EE / QCI."
+            ]}
+          ]}
+        ]
+      }
+    ]
+  },
+  L11: {
+    name: "L11",
+    children: [
+      { name: "Cluster / Rack Test", children: [
+        { id: "L11-0001", fail_name: "NVLink Fabric Fail", symptom_name: "Fabric connectivity issue across nodes", steps: [
+          "Validate all 18 servers + 9 NV switches detected.",
+          "Verify NVLink/NVSwitch cabling map and seated connectors.",
+          "Check cooling system + rectifiers status.",
+          "Re-run rack test; collect logs.",
+          "Escalate TE / EE / QCI."
+        ]}
+      ]}
+    ]
+  }
+};
 
-async function heartbeat(){
-  const sn = document.getElementById("logServer").value.trim();
-  if(!sn){
-    document.getElementById("hbPill").textContent = "SN required";
+/* =========================================================
+   STATE + STORAGE
+   ========================================================= */
+const LS = {
+  theme: "gb_tsg_theme_v1",
+  mood: "gb_tsg_mood_v1",
+  moodSpeed: "gb_tsg_mood_speed_v1",
+  logs: "gb_tsg_logs_v1",
+  tasks: "gb_tasks_l10_v1",
+  repairQueue: "gb_repair_queue_l10_v1",
+  repairResp: "gb_repair_responses_l10_v1",
+  steps: (sn, dept, failId) => `gb_steps_${dept}_${sn}_${failId}_v1`,
+  agentUrl: "gb_opentest_agent_url_v1"
+};
+
+function loadJSON(key, fallback){
+  try{ return JSON.parse(localStorage.getItem(key) || ""); } catch { return fallback; }
+}
+function saveJSON(key, obj){ localStorage.setItem(key, JSON.stringify(obj)); }
+function nowISO(){ return new Date().toISOString(); }
+function safe(s){ return (s ?? "").toString(); }
+
+function isValidEmail(v){
+  const s = (v || "").trim();
+  if(!s) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+
+function ensureReady(){
+  const name = (document.getElementById("userName").value || "").trim();
+  const g = (document.getElementById("emailGoogle").value || "").trim();
+  const m = (document.getElementById("emailMS").value || "").trim();
+  const rack = (document.getElementById("logRack").value || "").trim();
+  const sn = (document.getElementById("logServer").value || "").trim();
+  if(!name){ alert("Enter your name first."); return false; }
+  if(!isValidEmail(g) && !isValidEmail(m)){ alert("Enter at least ONE valid email (Google/Open-Test or Microsoft/SSO)."); return false; }
+  if(!rack){ alert("Enter Rack Location."); return false; }
+  if(!sn){ alert("Enter Server SN."); return false; }
+  return true;
+}
+
+/* =========================================================
+   AUTO-NUMBER L10 fails (no IDs yet)
+   ========================================================= */
+function autoNumberL10(root){
+  let pre=1, fat=1;
+  function walk(node, phase){
+    if(!node) return;
+    if(node.steps && Array.isArray(node.steps)){
+      if(!node.id || !node.id.trim()){
+        if(phase === "PRE") node.id = `L10-PRE-${String(pre++).padStart(4,"0")}`;
+        else if(phase === "FAT") node.id = `L10-FAT-${String(fat++).padStart(4,"0")}`;
+        else node.id = `L10-${String(pre++).padStart(4,"0")}`;
+      }
+    }
+    if(node.children) node.children.forEach(ch=>walk(ch, phase));
+  }
+  root.children.forEach(top=>{
+    const n = (top.name||"").toLowerCase();
+    if(n.includes("pretest")) walk(top, "PRE");
+    else if(n.includes("fat")) walk(top, "FAT");
+    else walk(top, "");
+  });
+  return root;
+}
+DATA.L10 = autoNumberL10(DATA.L10);
+
+/* =========================================================
+   LOGS + TASKS + REPAIR
+   ========================================================= */
+function getLogs(){ return loadJSON(LS.logs, []); }
+function setLogs(arr){ saveJSON(LS.logs, arr); }
+function addLog(row){
+  const logs = getLogs();
+  logs.push(row);
+  setLogs(logs);
+  renderLogPreview();
+}
+function getTasks(){ return loadJSON(LS.tasks, []); }
+function setTasks(a){ saveJSON(LS.tasks, a); }
+function addTaskRow(row){ const a=getTasks(); a.push(row); setTasks(a); }
+function getRepairQueue(){ return loadJSON(LS.repairQueue, []); }
+function setRepairQueue(a){ saveJSON(LS.repairQueue, a); }
+function addRepairQueueRow(row){ const a=getRepairQueue(); a.push(row); setRepairQueue(a); }
+function getRepairResp(){ return loadJSON(LS.repairResp, []); }
+function setRepairResp(a){ saveJSON(LS.repairResp, a); }
+function addRepairRespRow(row){ const a=getRepairResp(); a.push(row); setRepairResp(a); }
+
+/* =========================================================
+   CURRENT SELECTION
+   ========================================================= */
+let scope = "L10";
+let activeNode = null;
+let activePath = [];
+let view = { scale: 1, tx: 0, ty: 0 };
+
+const scopePill = document.getElementById("scopePill");
+const countPill = document.getElementById("countPill");
+const selectedLabel = document.getElementById("selectedLabel");
+
+function updateCounts(){
+  const l10 = countLeaves(DATA.L10);
+  const l11 = countLeaves(DATA.L11);
+  countPill.textContent = `Counts: L10=${l10} | L11=${l11}`;
+}
+function countLeaves(node){
+  let c = 0;
+  function walk(n){
+    if(!n) return;
+    if(n.steps && Array.isArray(n.steps)) c++;
+    (n.children||[]).forEach(walk);
+  }
+  walk(node);
+  return c;
+}
+
+/* =========================================================
+   DIAGRAM (expand/collapse)
+   ========================================================= */
+const svg = document.getElementById("svg");
+const searchBox = document.getElementById("searchBox");
+let openSet = new Set();
+
+function nodeKey(pathArr){ return pathArr.join(" > "); }
+
+function buildVisibleTree(root){
+  const out = JSON.parse(JSON.stringify(root));
+  function walk(n, path){
+    const key = nodeKey(path);
+    const isRoot = path.length === 1;
+    const isOpen = isRoot || openSet.has(key);
+    if(!n.children) return;
+    if(!isOpen){ n.children = []; return; }
+    n.children.forEach(ch=>walk(ch, path.concat([ch.name || ch.fail_name || ch.id || "item"])));
+  }
+  walk(out, [out.name]);
+  return out;
+}
+
+function layoutTree(root){
+  const nodes = [];
+  const edges = [];
+  const levelGap = 220;
+  const rowGap = 62;
+  const levels = new Map();
+
+  function walk(n, depth, parent, path){
+    const label = n.name || n.fail_name || n.id || "Node";
+    const isLeaf = !!(n.steps && Array.isArray(n.steps));
+    const key = nodeKey(path);
+    const node = { n, label, depth, key, path, isLeaf, parentKey: parent?.key || null, x:0, y:0 };
+    nodes.push(node);
+    if(!levels.has(depth)) levels.set(depth, []);
+    levels.get(depth).push(node);
+    if(parent) edges.push({ from: parent, to: node });
+    (n.children||[]).forEach(ch=>{
+      const childLabel = ch.name || ch.fail_name || ch.id || "Node";
+      walk(ch, depth+1, node, path.concat([childLabel]));
+    });
+  }
+
+  walk(root, 0, null, [root.name]);
+
+  for(const [depth, arr] of levels.entries()){
+    arr.forEach((node, i)=>{
+      node.x = 60 + depth * levelGap;
+      node.y = 120 + i * rowGap;
+    });
+  }
+  for(let iter=0; iter<2; iter++){
+    nodes.slice().reverse().forEach(node=>{
+      const kids = nodes.filter(n=>n.parentKey === node.key);
+      if(kids.length){
+        const avg = kids.reduce((s,k)=>s+k.y,0)/kids.length;
+        node.y = (node.y*0.3 + avg*0.7);
+      }
+    });
+  }
+  return { nodes, edges };
+}
+
+function applyViewPoint(x,y){
+  return { x: x*view.scale + view.tx, y: y*view.scale + view.ty };
+}
+
+function renderDiagram(){
+  svg.innerHTML = "";
+  const root = (scope === "L10") ? DATA.L10 : DATA.L11;
+  const visible = buildVisibleTree(root);
+  const { nodes, edges } = layoutTree(visible);
+
+  const maxY = Math.max(...nodes.map(n=>n.y), 520);
+  const h = Math.max(maxY + 120, 520);
+  svg.setAttribute("viewBox", `0 0 900 ${h}`);
+
+  edges.forEach(e=>{
+    const p1 = applyViewPoint(e.from.x, e.from.y);
+    const p2 = applyViewPoint(e.to.x, e.to.y);
+    const midX = (p1.x+p2.x)/2;
+    const d = `M ${p1.x} ${p1.y} C ${midX} ${p1.y}, ${midX} ${p2.y}, ${p2.x} ${p2.y}`;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("class", "edge");
+    svg.appendChild(path);
+  });
+
+  nodes.forEach(node=>{
+    const p = applyViewPoint(node.x, node.y);
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.style.cursor = "pointer";
+
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("cx", p.x);
+    c.setAttribute("cy", p.y);
+    c.setAttribute("r", node.depth===0 ? 22 : 12);
+    c.setAttribute("class", "nodeCircle" + (node.isLeaf ? " leaf" : "") + (openSet.has(node.key) ? " open" : "") + (activeNode && activeNode.id === node.n.id ? " active" : ""));
+    g.appendChild(c);
+
+    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("x", p.x + (node.depth===0 ? 30 : 20));
+    t.setAttribute("y", p.y + 5);
+    t.setAttribute("class", "nodeText" + (node.depth>0 && !node.isLeaf ? " small" : ""));
+    t.textContent = node.label;
+    g.appendChild(t);
+
+    g.addEventListener("click", ()=>{
+      if(node.isLeaf){ openLeaf(node); return; }
+      if(openSet.has(node.key)) openSet.delete(node.key);
+      else openSet.add(node.key);
+      renderDiagram();
+    });
+
+    svg.appendChild(g);
+  });
+
+  updateCounts();
+  scopePill.textContent = `Scope: ${scope}`;
+}
+
+function openLeaf(node){
+  activeNode = node.n;
+  activePath = node.path;
+  selectedLabel.textContent = `${scope} • ${activeNode.id || ""}`;
+  document.getElementById("stepHint").textContent = "Complete steps in order. Escalate any time.";
+  renderSteps();
+  addLog(makeLogRow("SELECT_FAIL", `${activeNode.fail_name || activeNode.name || ""}`));
+}
+
+/* =========================================================
+   STEPS (locked)
+   ========================================================= */
+function stepKey(){
+  const sn = (document.getElementById("logServer").value || "").trim();
+  const fid = activeNode?.id || "NOFAIL";
+  return LS.steps(sn, scope, fid);
+}
+function loadStepState(){ return loadJSON(stepKey(), []); }
+function saveStepState(arr){ saveJSON(stepKey(), arr); }
+
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m]));
+}
+
+function renderSteps(){
+  const stepList = document.getElementById("stepList");
+  stepList.innerHTML = "";
+  if(!activeNode || !activeNode.steps){
+    stepList.innerHTML = `<div class="notice">Select a fail node from the diagram to view steps.</div>`;
     return;
   }
+  if(!ensureReady()){
+    stepList.innerHTML = `<div class="notice">Enter Name + Email + Rack + Server SN to start steps.</div>`;
+    return;
+  }
+
+  const state = loadStepState();
+  const done = new Map(state.map(x=>[x.i,x]));
+  let nextAllowed = 0;
+  while(done.has(nextAllowed)) nextAllowed++;
+
+  activeNode.steps.forEach((text, i)=>{
+    const box = document.createElement("div");
+    box.className = "step";
+
+    const top = document.createElement("div");
+    top.className = "stepTop";
+
+    const left = document.createElement("div");
+    left.innerHTML = `<b>Step ${i+1}</b><div class="small" style="margin-top:6px; color:var(--muted);">${escapeHTML(text)}</div>`;
+
+    const right = document.createElement("div");
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    if(done.has(i)){
+      tag.style.color = "var(--good)";
+      tag.textContent = `DONE • ${new Date(done.get(i).time).toLocaleTimeString()}`;
+    }else if(i === nextAllowed){
+      tag.style.color = "var(--warn)";
+      tag.textContent = `NEXT`;
+    }else{
+      tag.textContent = `LOCKED`;
+    }
+    right.appendChild(tag);
+
+    top.appendChild(left);
+    top.appendChild(right);
+    box.appendChild(top);
+
+    const actions = document.createElement("div");
+    actions.className = "stepActions";
+
+    const btn = document.createElement("button");
+    btn.className = "btn primary";
+    btn.textContent = done.has(i) ? "Completed" : "Mark Done";
+    btn.disabled = done.has(i) || (i !== nextAllowed);
+    btn.addEventListener("click", ()=>{
+      const st = loadStepState();
+      st.push({ i, time: nowISO() });
+      saveStepState(st);
+      addLog(makeLogRow("STEP_DONE", `Step ${i+1}: ${text}`));
+      renderSteps();
+    });
+
+    actions.appendChild(btn);
+    box.appendChild(actions);
+    stepList.appendChild(box);
+  });
+}
+
+/* =========================================================
+   Actions: start/reset/escalate/repair
+   ========================================================= */
+document.getElementById("startSessionBtn").addEventListener("click", ()=>{
+  if(!ensureReady()) return;
+  if(!activeNode){ alert("Select a fail node first."); return; }
+  addLog(makeLogRow("START_SESSION", activeNode.fail_name || activeNode.id || ""));
+  renderSteps();
+});
+
+document.getElementById("resetStepsBtn").addEventListener("click", ()=>{
+  if(!ensureReady()) return;
+  if(!activeNode){ alert("Select a fail node first."); return; }
+  if(!confirm("Reset steps for this Server SN + Fail?")) return;
+  saveJSON(stepKey(), []);
+  addLog(makeLogRow("RESET_STEPS", activeNode.fail_name || activeNode.id || ""));
+  renderSteps();
+});
+
+function actionsDoneSummary(){
+  if(!activeNode) return "(no fail selected)";
+  const st = loadStepState().sort((a,b)=>a.i-b.i);
+  return st.map(x => `Step ${x.i+1} @ ${x.time}`).join(" | ") || "(no steps completed yet)";
+}
+
+function logAssign(assignTo){
+  if(!ensureReady()) return;
+  if(!activeNode){ alert("Select a fail node first."); return; }
+
+  const rack = (document.getElementById("logRack").value || "").trim();
+  const sn = (document.getElementById("logServer").value || "").trim();
+  const name = (document.getElementById("userName").value || "").trim();
+  const g = (document.getElementById("emailGoogle").value || "").trim();
+  const m = (document.getElementById("emailMS").value || "").trim();
+
+  if(assignTo === "REPAIR"){
+    const req = (document.getElementById("repairRequest").value || "").trim();
+    if(!req){ alert("Repair Request Note is required before sending to REPAIR."); return; }
+
+    addRepairQueueRow({
+      time: nowISO(),
+      requested_by: name,
+      google_email: g,
+      ms_email: m,
+      rack_location: rack,
+      server_sn: sn,
+      fail_id: activeNode.id || "",
+      fail_name: activeNode.fail_name || "",
+      symptom_name: activeNode.symptom_name || "",
+      request_note: req,
+      steps_done: actionsDoneSummary(),
+      status: "OPEN"
+    });
+
+    addLog(makeLogRow("REPAIR_REQUEST", req));
+  }else{
+    addTaskRow({
+      time: nowISO(),
+      user_name: name,
+      google_email: g,
+      ms_email: m,
+      assign_to: assignTo,
+      rack_location: rack,
+      server_sn: sn,
+      fail_id: activeNode.id || "",
+      fail_name: activeNode.fail_name || "",
+      symptom_name: activeNode.symptom_name || "",
+      actions: actionsDoneSummary()
+    });
+
+    addLog(makeLogRow("ESCALATE", `${assignTo} | ${actionsDoneSummary()}`));
+  }
+
+  alert(`Sent to ${assignTo} queue ✅`);
+  renderLogPreview();
+}
+
+document.getElementById("escTEBtn").addEventListener("click", ()=>logAssign("TE"));
+document.getElementById("escEEBtn").addEventListener("click", ()=>logAssign("EE"));
+document.getElementById("escQCIBtn").addEventListener("click", ()=>logAssign("QCI"));
+document.getElementById("markRepairBtn").addEventListener("click", ()=>logAssign("REPAIR"));
+
+document.getElementById("submitRepairRespBtn").addEventListener("click", ()=>{
+  if(!ensureReady()) return;
+  if(!activeNode){ alert("Select a fail node first."); return; }
+  const resp = (document.getElementById("repairResponse").value || "").trim();
+  if(!resp){ alert("Repair Response is required."); return; }
+
+  const rack = (document.getElementById("logRack").value || "").trim();
+  const sn = (document.getElementById("logServer").value || "").trim();
+  const name = (document.getElementById("userName").value || "").trim();
+
+  addRepairRespRow({
+    time: nowISO(),
+    repaired_by: name,
+    rack_location: rack,
+    server_sn: sn,
+    fail_id: activeNode.id || "",
+    fail_name: activeNode.fail_name || "",
+    response_note: resp
+  });
+
+  addLog(makeLogRow("REPAIR_RESPONSE", resp));
+  alert("Repair response saved ✅ (will export to Excel)");
+});
+
+/* =========================================================
+   LOG ROW BUILDER + Preview
+   ========================================================= */
+function makeLogRow(eventType, details){
+  const name = (document.getElementById("userName").value || "").trim();
+  const g = (document.getElementById("emailGoogle").value || "").trim();
+  const m = (document.getElementById("emailMS").value || "").trim();
+  const rack = (document.getElementById("logRack").value || "").trim();
+  const sn = (document.getElementById("logServer").value || "").trim();
+  return {
+    time: nowISO(),
+    user_name: name,
+    google_email: g,
+    ms_email: m,
+    dept: scope,
+    rack_location: rack,
+    server_sn: sn,
+    fail_id: activeNode?.id || "",
+    fail_name: activeNode?.fail_name || "",
+    symptom_name: activeNode?.symptom_name || "",
+    event_type: eventType,
+    event_details: details || ""
+  };
+}
+
+function renderLogPreview(){
+  const el = document.getElementById("logPreview");
+  const logs = getLogs().slice(-120).reverse();
+  if(!logs.length){
+    el.textContent = "No logs yet.";
+    return;
+  }
+  el.innerHTML = logs.map(r=>{
+    return `<div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--line);">
+      <div><b>${escapeHTML(r.event_type)}</b> <span class="small">• ${new Date(r.time).toLocaleString()}</span></div>
+      <div class="small">SN: <b>${escapeHTML(r.server_sn||"-")}</b> | Rack: ${escapeHTML(r.rack_location||"-")} | Fail: ${escapeHTML(r.fail_id||"-")} ${escapeHTML(r.fail_name||"")}</div>
+      <div class="small">${escapeHTML(r.event_details||"")}</div>
+    </div>`;
+  }).join("");
+}
+
+document.getElementById("clearLogsBtn").addEventListener("click", ()=>{
+  if(!confirm("Clear all local logs?")) return;
+  setLogs([]);
+  setTasks([]);
+  setRepairQueue([]);
+  setRepairResp([]);
+  renderLogPreview();
+});
+
+/* =========================================================
+   EXCEL EXPORT
+   ========================================================= */
+document.getElementById("exportBtn").addEventListener("click", ()=>{
+  const logs = getLogs();
+  const tasks = getTasks();
+  const rq = getRepairQueue();
+  const rr = getRepairResp();
+
+  const wb = XLSX.utils.book_new();
+  function aoa(headers, rows){
+    return [headers].concat(rows.map(r => headers.map(h => (r[h] ?? ""))));
+  }
+
+  const logHeaders = ["time","user_name","google_email","ms_email","dept","rack_location","server_sn","fail_id","fail_name","symptom_name","event_type","event_details"];
+  const l10Logs = logs.filter(r=>r.dept==="L10");
+  const l11Logs = logs.filter(r=>r.dept==="L11");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa(logHeaders, l10Logs)), "L10_LOGS");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa(logHeaders, l11Logs)), "L11_LOGS");
+
+  const taskHeaders = ["time","user_name","google_email","ms_email","assign_to","rack_location","server_sn","fail_id","fail_name","symptom_name","actions"];
+  const te = tasks.filter(t=>t.assign_to==="TE");
+  const ee = tasks.filter(t=>t.assign_to==="EE");
+  const qci = tasks.filter(t=>t.assign_to==="QCI");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa(taskHeaders, te)), "L10_TE_QUEUE");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa(taskHeaders, ee)), "L10_EE_QUEUE");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa(taskHeaders, qci)), "L10_QCI_QUEUE");
+
+  const rqHeaders = ["time","requested_by","google_email","ms_email","rack_location","server_sn","fail_id","fail_name","symptom_name","request_note","steps_done","status"];
+  const rrHeaders = ["time","repaired_by","rack_location","server_sn","fail_id","fail_name","response_note"];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa(rqHeaders, rq)), "L10_REPAIR_QUEUE");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa(rrHeaders, rr)), "L10_REPAIR_RESPONSES");
+
+  const fname = `GB300_TSG_Tunnel_${new Date().toISOString().slice(0,10)}.xlsx`;
+  XLSX.writeFile(wb, fname);
+});
+
+/* =========================================================
+   THEME + SCOPE + SEARCH + COLLAPSE + ZOOM
+   ========================================================= */
+const toggleThemeBtn = document.getElementById("toggleThemeBtn");
+function setTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  localStorage.setItem(LS.theme, t);
+  renderDiagram();
+}
+toggleThemeBtn.addEventListener("click", ()=>{
+  const cur = localStorage.getItem(LS.theme) || "dark";
+  setTheme(cur === "dark" ? "light" : "dark");
+});
+
+document.getElementById("pickScopeBtn").addEventListener("click", ()=>{
+  scope = (scope === "L10") ? "L11" : "L10";
+  activeNode = null;
+  activePath = [];
+  selectedLabel.textContent = "No fail selected";
+  renderSteps();
+  renderDiagram();
+});
+
+searchBox.addEventListener("input", ()=>{
+  const q = (searchBox.value||"").trim().toLowerCase();
+  if(!q){ renderDiagram(); return; }
+
+  const root = (scope === "L10") ? DATA.L10 : DATA.L11;
+  function walk(n, path){
+    const label = (n.name || n.fail_name || n.id || "").toLowerCase();
+    const sym = (n.symptom_name || "").toLowerCase();
+    const match = label.includes(q) || sym.includes(q);
+
+    let childMatched = false;
+    (n.children||[]).forEach(ch=>{
+      if(walk(ch, path.concat([ch.name || ch.fail_name || ch.id || "item"]))) childMatched = true;
+    });
+
+    if(childMatched || match){
+      if(path.length > 1) openSet.add(nodeKey(path));
+      return true;
+    }
+    return false;
+  }
+
+  openSet.clear();
+  walk(root, [root.name]);
+  renderDiagram();
+});
+
+document.getElementById("collapseBtn").addEventListener("click", ()=>{
+  openSet.clear();
+  activeNode = null;
+  selectedLabel.textContent = "No fail selected";
+  renderSteps();
+  renderDiagram();
+});
+
+document.getElementById("zoomInBtn").addEventListener("click", ()=>{
+  view.scale = Math.min(1.6, view.scale + 0.1);
+  renderDiagram();
+});
+document.getElementById("zoomOutBtn").addEventListener("click", ()=>{
+  view.scale = Math.max(0.7, view.scale - 0.1);
+  renderDiagram();
+});
+document.getElementById("resetViewBtn").addEventListener("click", ()=>{
+  view = { scale: 1, tx: 0, ty: 0 };
+  renderDiagram();
+});
+
+/* =========================================================
+   HEARTBEAT + TEST CONNECTION + Phone Connector
+   ========================================================= */
+let hbTimer = null;
+let hbLastRecord = null;
+
+const hbPill = document.getElementById("hbPill");
+const hbEnable = document.getElementById("hbEnable");
+const hbNowBtn = document.getElementById("hbNowBtn");
+const hbLast = document.getElementById("hbLast");
+const hbInfo = document.getElementById("hbInfo");
+
+const agentUrlInput = document.getElementById("agentUrl");
+
+// Phone connector UI
+const lanIp = document.getElementById("lanIp");
+const lanPort = document.getElementById("lanPort");
+const useLanBtn = document.getElementById("useLanBtn");
+const useLocalBtn = document.getElementById("useLocalBtn");
+const lanHint = document.getElementById("lanHint");
+
+// Test connection UI
+const testConnBtn = document.getElementById("testConnBtn");
+const connStatus = document.getElementById("connStatus");
+
+function setHb(text, color){
+  hbPill.textContent = text;
+  hbPill.style.color = color || "var(--muted)";
+  hbPill.style.borderColor = "var(--line)";
+}
+
+function setConn(text, color){
+  connStatus.textContent = `● ${text}`;
+  connStatus.style.borderColor = "var(--line)";
+  connStatus.style.color = color || "var(--muted)";
+}
+
+function getAgentBase(){
+  const saved = localStorage.getItem(LS.agentUrl) || "";
+  const v = (agentUrlInput.value || saved || "http://127.0.0.1:8787").trim();
+  return v.replace(/\/+$/,"");
+}
+
+function isValidIPv4(ip){
+  const p = (ip || "").trim().split(".");
+  if(p.length !== 4) return false;
+  return p.every(x => x !== "" && !isNaN(x) && Number(x) >= 0 && Number(x) <= 255);
+}
+
+function setAgentUrl(url){
+  agentUrlInput.value = url;
+  localStorage.setItem(LS.agentUrl, url);
+  hbInfo.textContent = `Agent URL set to: ${url}`;
+  setHb("Open-Test: OFF", "var(--muted)");
+  setConn("not tested", "var(--muted)");
+}
+
+useLanBtn.addEventListener("click", ()=>{
+  const ip = (lanIp.value || "").trim();
+  const port = (lanPort.value || "8787").trim();
+  if(!isValidIPv4(ip)){
+    alert("Enter a valid laptop IPv4 (example: 192.168.1.44)");
+    return;
+  }
+  const url = `http://${ip}:${port}`;
+  setAgentUrl(url);
+  lanHint.innerHTML = `Using LAN Agent URL: <b>${url}</b><br>Make sure iPhone and laptop are on the same Wi-Fi, and the agent binds to <b>0.0.0.0</b>.`;
+});
+
+useLocalBtn.addEventListener("click", ()=>{
+  setAgentUrl("http://127.0.0.1:8787");
+  lanHint.innerHTML = `Using localhost (works on laptop only).`;
+});
+
+async function testConnection(){
+  const base = getAgentBase();
+  localStorage.setItem(LS.agentUrl, base);
+
+  // Best-effort endpoints:
+  // 1) /health
+  // 2) /ping
+  // 3) /status?sn=TEST
+  setConn("testing…", "var(--warn)");
+
+  const candidates = [
+    `${base}/health`,
+    `${base}/ping`,
+    `${base}/status?sn=TEST`
+  ];
+
+  let lastErr = "";
+  for(const url of candidates){
+    try{
+      const r = await fetch(url, { cache:"no-store" });
+      if(r.ok){
+        setConn("connected", "var(--good)");
+        hbInfo.textContent = `Connection OK: ${url}`;
+        return true;
+      }else{
+        lastErr = `HTTP ${r.status} on ${url}`;
+      }
+    }catch(e){
+      lastErr = `${e?.message || "Network error"} on ${url}`;
+    }
+  }
+
+  setConn("failed", "var(--bad)");
+  hbInfo.textContent = `Connection failed. Check Agent URL + firewall + same Wi-Fi. (${lastErr})`;
+  return false;
+}
+
+testConnBtn.addEventListener("click", testConnection);
+
+async function hbOnce(){
+  const sn = (document.getElementById("logServer").value || "").trim();
+  if(!sn){
+    setHb("Open-Test: SN required", "var(--warn)");
+    hbInfo.textContent = "Enter Server SN then refresh heartbeat.";
+    hbLast.textContent = "Last: —";
+    hbLastRecord = null;
+    return;
+  }
+
+  const base = getAgentBase();
+  localStorage.setItem(LS.agentUrl, base);
+
   try{
-    const r = await fetch(`${OPENTEST}/status?sn=${sn}`);
+    const r = await fetch(`${base}/status?sn=${encodeURIComponent(sn)}`, { cache:"no-store" });
+    if(!r.ok){
+      setHb(`Open-Test: ${r.status}`, "var(--warn)");
+      hbInfo.textContent = "No record for this SN yet. (Send update to agent.)";
+      hbLast.textContent = "Last: —";
+      hbLastRecord = null;
+      return;
+    }
     const j = await r.json();
-    document.getElementById("hbPill").textContent = "CONNECTED";
-    document.getElementById("hbPill").style.color = "#3cff9d";
-    document.getElementById("hbInfo").innerText =
-      `Status: ${j.record.status} | Phase: ${j.record.phase}`;
-  }catch{
-    document.getElementById("hbPill").textContent = "OFFLINE";
-    document.getElementById("hbInfo").innerText = "Agent not reachable";
+    hbLastRecord = j.record;
+
+    const act = hbLastRecord?.actionable || null;
+    const phase = hbLastRecord?.phase || "UNKNOWN";
+    const status = hbLastRecord?.status || "UNKNOWN";
+    const idx = act?.index ?? "";
+    const txt = (act?.step_name || act?.fail_name || "(no fail text)");
+
+    setHb("Open-Test: CONNECTED", "var(--good)");
+    setConn("connected", "var(--good)");
+    hbLast.textContent = `Last: ${new Date().toLocaleTimeString()}`;
+    hbInfo.innerHTML = `<b>Status:</b> ${escapeHTML(status)}  &nbsp; | &nbsp; <b>Phase:</b> ${escapeHTML(phase)}<br>
+                        <b>Actionable:</b> ${escapeHTML(String(idx))} — ${escapeHTML(txt)}`;
+
+  }catch(e){
+    setHb("Open-Test: OFFLINE", "var(--bad)");
+    setConn("failed", "var(--bad)");
+    hbInfo.textContent = "Agent not reachable. Start agent on laptop, set Agent URL to reachable host, allow port in firewall.";
+    hbLast.textContent = "Last: —";
+    hbLastRecord = null;
   }
 }
 
-document.getElementById("hbEnable").addEventListener("change", e=>{
-  if(e.target.checked){
-    heartbeat();
-    hbTimer = setInterval(heartbeat, 15000);
-  } else {
-    clearInterval(hbTimer);
+function hbStart(){
+  hbStop();
+  hbOnce();
+  hbTimer = setInterval(hbOnce, 15000);
+}
+function hbStop(){
+  if(hbTimer){ clearInterval(hbTimer); hbTimer = null; }
+}
+
+hbEnable.addEventListener("change", ()=> hbEnable.checked ? hbStart() : hbStop());
+hbNowBtn.addEventListener("click", hbOnce);
+
+/* =========================================================
+   Use Heartbeat fail in wizard
+   ========================================================= */
+const useHbFailBtn = document.getElementById("useHbFailBtn");
+useHbFailBtn.addEventListener("click", ()=>{
+  if(!hbLastRecord || !hbLastRecord.actionable){
+    alert("No heartbeat fail available yet.");
+    return;
   }
+  const needle = String(hbLastRecord.actionable.step_name || hbLastRecord.actionable.fail_name || "").trim();
+  if(!needle){ alert("Heartbeat returned no fail text to match."); return; }
+
+  const root = (scope === "L10") ? DATA.L10 : DATA.L11;
+  const found = findLeafByText(root, needle);
+  if(!found){
+    alert("That fail text isn’t in your JSON yet. Add it later and this will jump automatically.");
+    return;
+  }
+
+  found.path.slice(1).forEach((_, i)=>{
+    const p = found.path.slice(0, i+2);
+    openSet.add(nodeKey(p));
+  });
+
+  renderDiagram();
+  activeNode = found.node;
+  activePath = found.path;
+  selectedLabel.textContent = `${scope} • ${activeNode.id || ""}`;
+  renderSteps();
+  addLog(makeLogRow("OPENTEST_HEARTBEAT_USE", `Matched by: ${needle}`));
 });
 
-document.getElementById("hbNowBtn").onclick = heartbeat;
-
-// ========================
-// SCANNER
-// ========================
-let scanStream = null;
-let scanLoop = null;
-
-document.getElementById("scanSNBtn").onclick = () => {
-  document.getElementById("scanModal").style.display = "block";
-  startScan();
-};
-
-function closeScan(){
-  document.getElementById("scanModal").style.display = "none";
-  if(scanStream){
-    scanStream.getTracks().forEach(t=>t.stop());
+function findLeafByText(root, needle){
+  const n = needle.toLowerCase();
+  let out = null;
+  function walk(node, path){
+    const label = `${node.id||""} ${node.fail_name||node.name||""} ${node.symptom_name||""}`.toLowerCase();
+    if(node.steps && Array.isArray(node.steps) && label.includes(n)){
+      out = { node, path };
+      return;
+    }
+    (node.children||[]).forEach(ch=>{
+      if(out) return;
+      walk(ch, path.concat([ch.name || ch.fail_name || ch.id || "item"]));
+    });
   }
+  walk(root, [root.name]);
+  return out;
+}
+
+/* =========================================================
+   SCAN SN (Camera) - BarcodeDetector + ZXing fallback
+   ========================================================= */
+const scanSNBtn = document.getElementById("scanSNBtn");
+const scanModal = document.getElementById("scanModal");
+const closeScanBtn = document.getElementById("closeScanBtn");
+const scanVideo = document.getElementById("scanVideo");
+const scanStatus = document.getElementById("scanStatus");
+
+let scanStream = null;
+let scanInterval = null;
+let zxingReader = null;
+
+function openScan(){
+  scanModal.style.display = "block";
+  startScan();
+}
+function closeScan(){
+  scanModal.style.display = "none";
+  stopScan();
 }
 
 async function startScan(){
-  if(!("BarcodeDetector" in window)){
-    document.getElementById("scanStatus").innerText =
-      "Scanner not supported. Type SN manually.";
+  scanStatus.textContent = "Starting camera…";
+  try{
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    scanVideo.srcObject = scanStream;
+    await scanVideo.play();
+  }catch(e){
+    scanStatus.textContent = "Camera blocked/unavailable. Allow permission or type SN manually.";
     return;
   }
 
-  const detector = new BarcodeDetector({
-    formats: ["qr_code","code_128","code_39"]
-  });
-
-  scanStream = await navigator.mediaDevices.getUserMedia({ video:true });
-  scanVideo.srcObject = scanStream;
-  await scanVideo.play();
-
-  scanLoop = setInterval(async ()=>{
-    const codes = await detector.detect(scanVideo);
-    if(codes.length){
-      document.getElementById("logServer").value = codes[0].rawValue;
-      closeScan();
+  if("BarcodeDetector" in window){
+    try{
+      const detector = new BarcodeDetector({ formats: ["qr_code","code_128","code_39","ean_13","ean_8","upc_a","upc_e","itf"] });
+      scanStatus.textContent = "Scanning (native)…";
+      scanInterval = setInterval(async ()=>{
+        try{
+          const codes = await detector.detect(scanVideo);
+          if(codes && codes.length){
+            const sn = (codes[0].rawValue || "").trim();
+            if(sn){
+              document.getElementById("logServer").value = sn;
+              scanStatus.textContent = `Detected: ${sn}`;
+              closeScan();
+              if(hbEnable.checked) hbOnce();
+            }
+          }
+        }catch(_e){}
+      }, 250);
+      return;
+    }catch(e){
+      // fall through
     }
-  }, 300);
+  }
+
+  scanStatus.textContent = "Scanning (ZXing)…";
+  try{
+    const mod = await import("https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm");
+    if(!zxingReader){
+      zxingReader = new mod.BrowserMultiFormatReader();
+    }
+    zxingReader.decodeFromVideoElement(scanVideo, (result, err) => {
+      if(result){
+        const sn = String(result.getText() || "").trim();
+        if(sn){
+          document.getElementById("logServer").value = sn;
+          scanStatus.textContent = `Detected: ${sn}`;
+          closeScan();
+          if(hbEnable.checked) hbOnce();
+        }
+      }
+    });
+  }catch(e){
+    scanStatus.textContent = "Scanner not supported. Type SN manually or use a scanner gun.";
+  }
 }
 
-// Scanner keyboard support
-document.getElementById("logServer").addEventListener("keydown", e=>{
+function stopScan(){
+  if(scanInterval){ clearInterval(scanInterval); scanInterval = null; }
+  if(zxingReader){
+    try{ zxingReader.reset(); }catch(e){}
+  }
+  if(scanStream){
+    scanStream.getTracks().forEach(t=>t.stop());
+    scanStream = null;
+  }
+  scanVideo.pause();
+  scanVideo.srcObject = null;
+}
+
+scanSNBtn.addEventListener("click", openScan);
+closeScanBtn.addEventListener("click", closeScan);
+scanModal.addEventListener("click", (e)=>{ if(e.target === scanModal) closeScan(); });
+
+// Scanner-gun friendly: Enter triggers refresh
+document.getElementById("logServer").addEventListener("keydown", (e)=>{
   if(e.key === "Enter"){
-    heartbeat();
+    if(hbEnable.checked) hbOnce();
   }
 });
-</script>
 
+/* =========================================================
+   TICKER (gold end-to-end)
+   ========================================================= */
+const marqueeText = document.getElementById("marqueeText");
+const moodInput = document.getElementById("moodInput");
+const setMoodBtn = document.getElementById("setMoodBtn");
+const pauseMoodBtn = document.getElementById("pauseMoodBtn");
+const speedSlider = document.getElementById("speedSlider");
+
+let marqueeX = 0;
+let marqueePaused = false;
+let marqueeSpeed = Number(localStorage.getItem(LS.moodSpeed) || "58");
+speedSlider.value = String(marqueeSpeed);
+
+function setMood(text){
+  const t = (text || "").trim() || "— Follow the steps. No repeats. —";
+  marqueeText.textContent = `⚡ ${t} ⚡`;
+  localStorage.setItem(LS.mood, t);
+  marqueeX = marqueeText.parentElement.offsetWidth;
+}
+setMoodBtn.addEventListener("click", ()=> setMood(moodInput.value));
+pauseMoodBtn.addEventListener("click", ()=>{
+  marqueePaused = !marqueePaused;
+  pauseMoodBtn.textContent = marqueePaused ? "Play" : "Pause";
+});
+speedSlider.addEventListener("input", ()=>{
+  marqueeSpeed = Number(speedSlider.value);
+  localStorage.setItem(LS.moodSpeed, String(marqueeSpeed));
+});
+function tick(){
+  const wrap = marqueeText.parentElement;
+  const w = wrap.offsetWidth;
+  const textW = marqueeText.offsetWidth;
+  if(!marqueePaused){
+    marqueeX -= (marqueeSpeed/60);
+    if(marqueeX < -textW) marqueeX = w;
+    marqueeText.style.transform = `translateX(${marqueeX}px)`;
+  }
+  requestAnimationFrame(tick);
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+(function init(){
+  const t = localStorage.getItem(LS.theme) || "dark";
+  document.documentElement.setAttribute("data-theme", t);
+
+  const savedMood = localStorage.getItem(LS.mood) || "— Follow the steps. No repeats. —";
+  moodInput.value = savedMood;
+  setMood(savedMood);
+
+  const savedAgent = localStorage.getItem(LS.agentUrl) || "http://127.0.0.1:8787";
+  agentUrlInput.value = savedAgent;
+
+  // If savedAgent is LAN, prefill IP/port
+  try{
+    const m = savedAgent.match(/^http:\/\/(\d+\.\d+\.\d+\.\d+):(\d+)$/);
+    if(m){
+      lanIp.value = m[1];
+      lanPort.value = m[2];
+      lanHint.innerHTML = `Detected saved LAN URL. Tap <b>Test Connection</b> to verify.`;
+    }
+  }catch(_e){}
+
+  openSet.clear();
+  openSet.add(nodeKey([DATA.L10.name, "Pretest Fail"]));
+  renderDiagram();
+  renderLogPreview();
+  tick();
+})();
+</script>
 </body>
 </html>
