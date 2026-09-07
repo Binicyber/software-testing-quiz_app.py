@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quanta L10 Diagnostic Training</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f4f5f7;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 900px;
+        background: #ffffff;
+        margin: 20px;
+        padding: 25px;
+        border-radius: 14px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.08);
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #0033a0;
+        margin: 0;
+    }
+
+    .subtitle {
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 25px;
+    }
+
+    .question {
+        background: #f8fafc;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-left: 4px solid #0033a0;
+    }
+
+    .explanation {
+        display: none;
+        background: #e6f0ff;
+        border: 1px solid #99c2ff;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 14px;
+        color: #003366;
+    }
+
+    button {
+        padding: 12px 20px;
+        background: #0033a0;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #001f70;
+        transform: scale(1.03);
+    }
+
+    #result {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        margin-top: 15px;
+    }
+
+    #quantaFlair {
+        display: none;
+        text-align: center;
+        font-size: 26px;
+        font-weight: bold;
+        margin-top: 20px;
+        color: #0033a0;
+        text-shadow: 0 0 12px rgba(0,51,160,0.4);
+        animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+        from { opacity: 0.6; }
+        to { opacity: 1; }
+    }
+
+    /* Certificate */
+    #certificate {
+        display: none;
+        margin-top: 40px;
+        padding: 30px;
+        border: 3px solid #0033a0;
+        border-radius: 12px;
+        background: white;
+    }
+
+    #certificate h2 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    #footerBlock {
+        margin-top: 25px;
+        font-size: 14px;
+        color: #003366;
+        line-height: 1.5;
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <h1>Quanta Computer</h1>
+    <h2>L10 Diagnostic Training</h2>
+    <p class="subtitle">Answer all 15 questions. Incorrect answers show explanations.</p>
+
+    <div id="quiz"></div>
+
+    <button onclick="submitQuiz()">Submit Answers</button>
+
+    <div id="result"></div>
+    <div id="quantaFlair">💙 Welcome to L10 team in Quanta 💙</div>
+
+    <!-- Certificate -->
+    <div id="certificate">
+        <h2>Certificate of Completion</h2>
+        <p id="certName"></p>
+        <p>You have successfully completed the Quanta L10 Diagnostic Training.</p>
+        <p id="certDate"></p>
+
+        <div id="footerBlock">
+            <p><strong>Supervisor:</strong> Karim</p>
+            <p><strong>Trainer:</strong> Bini</p>
+            <p><strong>Contributors:</strong> Raymond & Biruk</p>
+            <p><strong>Application built by:</strong> Bini Autonomous Group</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const questions = [
+    { q: "What is the first step when beginning diagnosis on a GB300 unit?",
+      options: ["Reboot the unit","Scan the serial number in Open-Test","Open the DMR tool","Move the unit in PQC"],
+      answer: 1,
+      explanation: "Diagnosis begins by searching the serial number in Open-Test. The top fail record (smallest index) is the latest. If a child fail appears above the parent, the second item is the true actionable failure."
+    },
+
+    { q: "Compared to GB200, what is a key characteristic of the GB300 diagnostic process?",
+      options: ["GB300 stops testing at failure","GB300 continues diagnostics after failure","GB300 only runs 30 minutes","GB300 does not log failures"],
+      answer: 1,
+      explanation: "GB300 continues testing after failure, which creates child failures. If a server fails without child failures, it has a higher chance to FAT PASS once repaired."
+    },
+
+    { q: "How long can a GB300 server take to complete its full testing cycle?",
+      options: ["5–10 minutes","15–60 minutes","30–420 minutes","Over 24 hours"],
+      answer: 2,
+      explanation: "GB300 tests can legitimately run 30–420 minutes."
+    },
+
+    { q: "Why is it dangerous to assume a GB300 test is hung too early?",
+      options: ["It might damage hardware","It interrupts valid tests and creates false failures","It erases logs","It reboots the rack"],
+      answer: 1,
+      explanation: "Interrupting long tests can break diagnostics and misclassify the unit."
+    },
+
+    { q: "In Open-Test, which tab shows the job listing and failed steps?",
+      options: ["SYMPTOMS","PROCESS","DMR","HISTORY"],
+      answer: 1,
+      explanation: "The PROCESS tab reveals the job listing and failed steps."
+    },
+
+    { q: "What should you do with the first STEP NAME that does not contain 'failed Child'?",
+      options: ["Ignore it","Look it up in SKL100","Send it to engineering","Use Ctrl+F in TSG and match the symptom"],
+      answer: 3,
+      explanation: "There is no SKL100. Use Ctrl+F in the TSG and match the STEP NAME to the correct symptom."
+    },
+
+    { q: "What is the purpose of the SYMPTOMS tab?",
+      options: ["Reboot the unit","View temperature","Observe failure logs and match diagnosis","Escalate issue"],
+      answer: 2,
+      explanation: "SYMPTOMS shows failure logs used to match the correct TSG track."
+    },
+
+    { q: "Why must you avoid entering duplicate units into WIP?",
+      options: ["Slows network","Confuses RTS","Creates conflicting records and wastes time","Prevents PQC from working"],
+      answer: 2,
+      explanation: "Duplicates cause conflicting records and wasted diagnostic effort."
+    },
+
+    { q: "Which tool shows real-time tray status?",
+      options: ["UTX","PQC","Test Monitor","AOS"],
+      answer: 2,
+      explanation: "Test Monitor displays real-time tray status and is used to check trays in/out."
+    },
+
+    { q: "What is required in DMR notes?",
+      options: ["Only serial number","Only error code","Clear description including left/right and SSD serials","Leave blank if passed"],
+      answer: 2,
+      explanation: "DMR notes must describe the issue clearly, including left/right and SSD serial numbers if needed."
+    },
+
+    { q: "What is the primary purpose of GB300 trays?",
+      options: ["Office work","High-performance compute and AI","Simple storage","Running desktop OS"],
+      answer: 1,
+      explanation: "GB300 trays support high-performance compute and AI/ML workloads."
+    },
+
+    { q: "Why follow a documented diagnostic process?",
+      options: ["Slows job","Ensures consistent, traceable troubleshooting","Avoids tools","Removes documentation need"],
+      answer: 1,
+      explanation: "A documented process ensures consistency and traceability."
+    },
+
+    { q: "What is the safest first action for a new tech seeing a failed unit?",
+      options: ["Power-cycle rack","Remove tray immediately","Record serial and check WIP/logs","Open chassis"],
+      answer: 2,
+      explanation: "Always record the serial and check WIP/logs before touching hardware."
+    },
+
+    { q: "What is the first step when diagnosing boot failures?",
+      options: ["Open chassis","Run TSG first","Perform visual inspection of cables and LEDs","Move unit in PQC"],
+      answer: 2,
+      explanation: "Start with a visual inspection: cables, white/amber LEDs, loose components. TSG is a guide, not 100% accurate."
+    },
+
+    { q: "Why is accurate failure classification important?",
+      options: ["Affects LED brightness","Determines boot speed","Drives correct repair path and escalation","Only for billing"],
+      answer: 2,
+      explanation: "Correct classification ensures the right repair path, parts, and escalation."
+    }
+];
+
+function loadQuiz() {
+    const quizDiv = document.getElementById("quiz");
+    quizDiv.innerHTML = "";
+
+    questions.forEach((q, index) => {
+        quizDiv.innerHTML += `
+        <div class="question">
+            <p><strong>${index + 1}. ${q.q}</strong></p>
+            ${q.options.map((opt, i) =>
+                `<label><input type="radio" name="q${index}" value="${i}"> ${opt}</label><br>`
+            ).join("")}
+            <div class="explanation" id="explanation-${index}"></div>
+        </div>`;
+    });
+}
+
+function submitQuiz() {
+    let score = 0;
+
+    questions.forEach((q, index) => {
+        const selected = document.querySelector(`input[name="q${index}"]:checked`);
+        const expDiv = document.getElementById(`explanation-${index}`);
+        expDiv.style.display = "none";
+
+        if (selected && parseInt(selected.value) === q.answer) {
+            score++;
+        } else {
+            expDiv.innerHTML = q.explanation;
+            expDiv.style.display = "block";
+        }
+    });
+
+    document.getElementById("result").innerText =
+        `You scored ${score} out of ${questions.length}.`;
+
+    // ✅ FIX 1: Smooth scroll to results so user sees score immediately
+    document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+
+    if (score === questions.length) {
+        document.getElementById("quantaFlair").style.display = "block";
+        showCertificate();
+    }
+}
+
+// ✅ FIX 2: Prevent blank/cancelled name on certificate
+function showCertificate() {
+    const cert = document.getElementById("certificate");
+    let name = prompt("Enter your name for the certificate:") || "";
+    name = name.trim();
+    if (!name) name = "Participant";
+
+    document.getElementById("certName").innerText = name;
+    document.getElementById("certDate").innerText =
+        "Completed on: " + new Date().toLocaleDateString();
+
+    cert.style.display = "block";
+}
+
+window.onload = loadQuiz;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "department": "L10",
+  "platform": "GB300",
+  "id_policy": { "min": 1, "max": 500, "prefix": "L10-", "pad": 4, "reuse": false },
+  "next_id_num": 2,
+  "categories": [
+    {
+      "name": "Pretest Fail",
+      "items": [
+        {
+          "id_num": 1,
+          "id": "L10-0001",
+          "fail_name": "Host Boot Status 0",
+          "symptom_name": "Pretest fail: host boot status 0",
+          "tags": ["pretest", "boot", "host", "status 0", "rj45", "cables", "bmc", "sideband", "interposer"],
+          "steps": [
+            "Inspect visually: confirm RJ45 cables are connected in the correct positions; confirm all cables are seated and link LEDs are green.",
+            "If LED indicates the failure side: reseat the BMC interposer cable and the sideband cable (check both ends).",
+            "If still failing for the same reason: reseat the BMC module.",
+            "Replace the sideband cable.",
+            "Replace the BMC module. Escalate to TE/EE/QCI if repeated pattern or suspect batch issue."
+          ],
+          "escalation": ["TE", "EE", "QCI"],
+          "notes": "DMR: record side, cable positions verified, LED state, and what was reseated/replaced."
+        }
+      ]
+    },
+    { "name": "Boot Fail", "items": [] },
+    { "name": "Storage (NVMe/SSD)", "items": [] },
+    { "name": "Network / Cabling", "items": [] },
+    { "name": "Thermal / Fans", "items": [] },
+    { "name": "Power", "items": [] },
+    { "name": "Firmware / BMC", "items": [] }
+  ]
+}
