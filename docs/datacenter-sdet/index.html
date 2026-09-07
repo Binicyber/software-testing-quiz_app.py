@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07111f">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Bini Automation Datacenter SDET Readiness Lab</title>
 <style>
 html,body{margin:0;min-height:100%;background:#07111f;color:#edf6ff;font-family:Segoe UI,Arial,sans-serif}body{display:grid;place-items:center}.box{width:min(86vw,680px);padding:30px;border:1px solid #25435f;border-radius:18px;background:#0d1b2a;text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.35)}h2{font-size:clamp(28px,7vw,42px);line-height:1.2;margin:0 0 20px}.muted{color:#a9bdd0}.err{color:#ff9aaa;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -39,6 +42,69 @@ html,body{margin:0;min-height:100%;background:#07111f;color:#edf6ff;font-family:
       });
       html=new TextDecoder().decode(window.pako.ungzip(bytes));
     }
+
+    // Binibot hotfix: the packaged app checked for loadPyodide before loading it.
+    // Patch that loader in-memory before the training app is written to the page.
+    const oldPy=[
+      'let pyodidePromise=null;',
+      'async function getPy(){',
+      '  if(!window.loadPyodide) throw new Error("Python engine could not load. Check internet access and reload.");',
+      '  if(!pyodidePromise){',
+      '    const s=document.createElement("script");',
+      '    s.src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js";',
+      '    document.head.appendChild(s);',
+      '    await new Promise((resolve,reject)=>{s.onload=resolve;s.onerror=()=>reject(new Error("Unable to load Python engine"));});',
+      '    pyodidePromise=loadPyodide();',
+      '  }',
+      '  return pyodidePromise;',
+      '}'
+    ].join('\n');
+
+    const newPy=[
+      'let pyodidePromise=null;',
+      'let pyodideScriptPromise=null;',
+      'async function getPy(){',
+      '  if(pyodidePromise) return pyodidePromise;',
+      '  if(typeof window.loadPyodide!=="function"){',
+      '    if(!pyodideScriptPromise){',
+      '      pyodideScriptPromise=new Promise((resolve,reject)=>{',
+      '        const existing=document.querySelector(\'script[data-bini-pyodide="1"]\');',
+      '        if(existing){',
+      '          if(typeof window.loadPyodide==="function"){resolve();return;}',
+      '          existing.addEventListener("load",resolve,{once:true});',
+      '          existing.addEventListener("error",()=>reject(new Error("Unable to load Python engine")), {once:true});',
+      '          return;',
+      '        }',
+      '        const script=document.createElement("script");',
+      '        script.dataset.biniPyodide="1";',
+      '        script.src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js";',
+      '        script.async=true;',
+      '        script.onload=resolve;',
+      '        script.onerror=()=>reject(new Error("Unable to load Python engine. Check internet access and retry."));',
+      '        document.head.appendChild(script);',
+      '      });',
+      '    }',
+      '    await pyodideScriptPromise;',
+      '  }',
+      '  if(typeof window.loadPyodide!=="function") throw new Error("Python engine did not initialize. Reload the page and retry.");',
+      '  pyodidePromise=window.loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.27.7/full/"});',
+      '  return pyodidePromise;',
+      '}'
+    ].join('\n');
+
+    if(html.includes(oldPy)){
+      html=html.replace(oldPy,newPy);
+    }
+    if(!html.includes('data-bini-pyodide="1"') && !html.includes("dataset.biniPyodide")){
+      throw new Error('Python coding hotfix failed integrity check');
+    }
+
+    // Make failed coding checks explicit without preventing final assessment submission.
+    html=html.replace(
+      'if(!fromSubmit) alert("Your code did not pass all checks. Keep working, then run them again.");',
+      'if(!fromSubmit) alert("Your code did not pass all checks. Review your syntax and logic, then run them again. You can still submit the assessment when ready.");'
+    );
+
     if(!html.includes('Bini Automation Datacenter SDET Readiness Lab') || !html.includes('</html>')){
       throw new Error('Decoded training application failed integrity check');
     }
